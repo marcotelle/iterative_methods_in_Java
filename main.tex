@@ -1,0 +1,307 @@
+\documentclass[12pt]{article}
+\usepackage[italian]{babel}
+\usepackage{amsmath}
+\usepackage{amsthm}
+\usepackage{booktabs}
+
+
+
+\title{Progetto di Esperienze di Programmazione\\
+    \large Implementazione di metodi iterativi in JAVA\\per matrici sparse grandi}
+\author{Marco Telleschi}
+\date{2020-02-27}
+
+\newtheorem*{remark}{Teorema.}
+
+\begin{document}
+
+\maketitle
+\pagenumbering{gobble}
+\newpage
+\pagenumbering{arabic}
+
+\tableofcontents
+\newpage
+
+
+\section{Descrizione del Problema}
+\subsection{Matrici sparse}
+In analisi numerica una \textit{matrice sparsa} è una matrice i cui valori sono quasi tutti zero. Il numero di elementi uguali a zero diviso il numero totale di elementi è detto \textit{sparsità} della matrice. Usando questa definizione una matrice si dirà sparsa quando la sua sparsità sarà maggiore di 0.5. \\
+Memorizzando e manipolando matrici sparse su calcolatori, è buona norma usare algoritmi e strutture dati apposite. Le operazioni standard per matrici dense, infatti sarebbero lente e inefficienti sprecando potere di calcolo e memoria sui valori uguali a zero.\\
+Tipicamente una matrice è memorizzata come un array bidimensionale. Ogni entry dell'array rappresenta un elemento \(a_{ij}\) della matrice ed è acceduto mediante gli indici \(i\) e \(j\). Per una matrice \(m \times n\), l'ammontare di memoria richiesto per la memorizzazione in questo formato è proporzionale a \(m \times n\).\\
+Nel caso delle matrici sparse, possiamo ridurre sostanzialmente la memoria occupata memorizzando solamente gli elementi diversi da zero. Ci sono differenti strutture dati che possono essere usate per portare notevoli risparmi di memoria. Il trade-off è portato da un accesso più difficoltoso agli elementi e da strutture addizionali che si rendono necessarie.
+
+\subsection{Sistemi lineari}
+Data una matrice \(A \in R^{n \times n}\) e un vettore \(b \in R^n\), si chiama \textit{sistema lineare} un sistema di \(n\) equazioni della forma
+\begin{equation}
+\label{eq:1}
+\begin{cases}
+    a_{1 1}+x_1 + a_{1 2}x_2 + ... + a_{1 n}+x_n &= b_1 \\
+    a_{2 1}x_1 + a_{2 2}x_2 + ... + a_{2 n}x_n &= b_2 \\
+    ... \\
+    a_{n 1}x_1 + a_{n 2}x_2 + ... + a_{n n}x_n &= b_n \\
+\end{cases}
+\end{equation}
+dove \(x = [x_1,x_2,...,x_n^T]\) è detto \textit{vettore delle incognite}. Con notazione più compatta il sistema \eqref{eq:1} viene anche scritto
+
+\begin{equation*}
+    Ax = b.
+\end{equation*}
+Risolvere un sistema lineare significa calcolare, se esiste, un vettore \(x\) che soddisfa le \eqref{eq:1}. La matrice \(A\) si dice \textit{matrice dei coefficienti}, il vettore \(b\) \textit{vettore dei termini noti}, la matrice \([A|b]\), ottenuta affiancando alla matrice \(A\) la colonna \(b\), si dice \textit{matrice aumentata}. Se \(b=0\) il sistema si dice \textit{omogeneo}. Il sistema si dice \textit{consistente} se ha almeno una soluzione.
+\subsection{Metodi iterativi per sistemi lineari}
+Per risolvere un sistema lineare come \eqref{eq:1} oltre al metodo di Gauss sono disponibili anche i \textit{metodi iterativi}, che sono particolarmente utili quando la matrice è di grandi dimensioni e sparsa.\\
+Sia \(A\) non singolare, dove per matrice singolare si intende una matrice quadrata  con determinante uguale a zero, e si consideri la decomposizione
+\begin{equation}
+    \label{eq:2}
+    A = M - N,
+\end{equation}
+dove \(M\) è una matrice non singolare. Dalla \eqref{eq:2}, sostituendo nel sistema lineare dato, risulta
+\begin{equation*}
+    Mx - Nx = b,
+\end{equation*}
+cioè
+\begin{equation*}
+    x = M^{-1}Nx + M^{-1}b.
+\end{equation*}
+Posto
+\begin{equation}
+    \label{eq:3}
+    P = M^{-1}N \quad \text{e} \quad q = M^{-1}b,
+\end{equation}
+si ottiene il seguente sistema equivalente al sistema dato
+\begin{equation}
+    \label{eq:4}
+    x = Px + q.
+\end{equation}
+Dato un vettore iniziale \(x^{(0)}\), si considera la successione \(x^{(1)},x^{(2)},...,\) così definita
+\begin{equation}
+    \label{eq:5}
+    x^{(k)}=Px^{(k-1)}+q, \quad k=1,2,...
+\end{equation}
+La successione \(x^{(k)}\) si dice \textit{convergente} al vettore \(x^*\) e si indica con
+\begin{equation*}
+    x^*=\lim_{k\to\infty} x^{(k)}, 
+\end{equation*}
+se al tendere di \(k\) all'infinito le componenti di \(x^{(k)}\) convergono alle corrispondenti componenti di \(x^*\). Allora passando al limite nella \eqref{eq:5} risulta
+\begin{equation}
+    x^*=Px^*+q,
+\end{equation}
+cioè \(x^*\) è la soluzione del sistema \eqref{eq:4} e quindi del sistema dato.
+\\\\
+La relazione \eqref{eq:5} individua un \textit{metodo iterativo} in cui, a partire da un vettore iniziale \(x^{(0)}\), la soluzione viene approssimata usando una successione \(\{x^{(k)}\}\) di vettori. La matrice \(P\) si dice \textit{matrice di iterazione del metodo}.\\
+Al variare del vettore iniziale \(x^{(0)}\) si ottengono dalla \eqref{eq:5} diverse successioni \(\{x^{(k)}\}\), alcune delle quali possono essere convergenti e altre no. Un metodo iterativo è detto \textit{convergente} se, qualunque sia il vettore iniziale \(x^{(0)}\), la successione \(\{x^{(k)}\}\) è convergente.
+\begin{remark}
+Il metodo iterativo \eqref{eq:5} è convergente se e solo se \(\rho(P)<1\).
+\end{remark}
+dove \(\rho(P)\) è definito come il \textit{raggio spettrale} che equivale all'autovalore di modulo massimo della matrice. La condizione espressa da questo teorema è necessaria e sufficiente per la convergenza del metodo \eqref{eq:5}, ma in generale non è di agevole verifica. Conviene allora utilizzare, quando è possibile, una condizione sufficiente di convergenza di più facile verifica, come quella del seguente teorema.
+\begin{remark}
+Se esiste una norma matriciale \(\|.\|\) per cui \(\|P\|<1\), il metodo iterativo \eqref{eq:5} è convergente.
+\end{remark}
+
+In un metodo iterativo ad ogni iterazione il costo computazionale è principalmente determinato dall'operazione di moltiplicazione della matrice \(P\) per un vettore, che richiede \(n^2\) operazioni moltiplicativa se la matrice \(A\) non ha specifiche proprietà. Se invece \(A\) è sparsa, per esempio ha un numero di elementi non nulli dell'ordine di \(n\), la moltiplicazione di \(P\) per un vettore richiede molte meno operazioni moltiplicative. In questo caso i metodi iterativi possono risultare vantaggiosi rispetto a quelli diretti.
+\subsection{Criterio di arresto}
+Poiché con un metodo iterativo non è ovviamente possibile calcolare in generale la soluzione con un numero finito di iterazioni, occorre individuare dei criteri per l'arresto del procedimento. Il criterio più comunemente usato, fissata una tolleranza \(\epsilon\), che tiene conto anche della precisione utilizzata nei calcoli, è il seguente
+\begin{equation}
+    \label{eq:6}
+    \|x^{(k)}-x^{(k-1)}\| \leq \epsilon.
+\end{equation}
+Questa condizione però non garantisce che la soluzione sia stata approssimata con la precizione \(\epsilon\). Infatti per è:
+\begin{equation*}
+    x^{(k)}-x^{(k-1)}=[x^*-x^{(k-1)}]-[x^*-x^{(k)}]=e^{(k-1)}-e^{(k)}=(I-P)e^{(k-1)}.
+\end{equation*}
+Se esiste una norma \(\|.\|\) per cui \(\|P\|<1\) è \(\rho(P)<1\). Quindi la matrice \(I-P\) è non singolare e si ha
+\begin{equation*}
+    \|e^{(k-1)}\| \leq \|(I-P)^{-1}\|\|x^{(k)}-x^{(k-1)}\|,
+\end{equation*}
+per cui può accadere che \(\|e^{(k-1)}\|\) sia elevata anche se la condizione \eqref{eq:6} è verificata.\\
+In un programma che implementa un metodo iterativo deve essere sempre previsto un controllo sulla effettiva convergenza del metodo, ad esempio verificando che \(\|x^{(k)}-x^{(k-1)}\|_\infty\) decresca. Può infatti accadere che un metodo iterativo la cui matrice di iterazione \(P\) è tale che \(\rho(P)<1\), per gli effetti indotti dagli errori di arrotondamento, non converga in pratica, e questo accade, in particolare, quando la matrice A è fortemente mal condizionata e \(\rho(P)\) è molto vicino a 1. Inoltre anche se \(\rho(P)\) è piccolo è possibile che \eqref{eq:6} non sia verificata se \(\epsilon\) è incompatibile con la precisione con cui si opera. È perciò necessario interrompere l'esecuzione quando il numero delle iterazioni diventa troppo elevato.
+\subsection{Metodi iterativi di Jacobi e Gauss-Seidel}
+Fra i metodi iterativi individuati da una particolare scelta della decomposizione \eqref{eq:2} sono particolarmente importanti il metodo di Jacobi e il metodo di Gauss-Seidel, per i quali è possibile dare delle condizioni sufficienti di convergenza verificate da molte delle matrici che si ottengono scrivendo problemi differenziali.\\
+Si consideri la decomposizione della matrice \(A\)
+\begin{equation*}
+    A=D-B-C
+\end{equation*}
+dove
+\begin{equation*}
+    d_{i,j}=
+    \begin{cases}
+        a_{ij} &\text{se}\: i=j\\
+        0 &\text{se} \: i \neq j,
+    \end{cases}
+    \quad
+    b_{ij}=
+    \begin{cases}
+        -a_{ij} &\text{se}\: i>j\\
+        0 &\text{se} \: i \leq j,
+    \end{cases}
+    \quad
+    c_{ij}=
+    \begin{cases}
+        0 &\text{se}\: i \geq j\\
+        -a_{ij} &\text{se} \: i<j,
+    \end{cases}
+\end{equation*}
+Scegliendo \(M=D\), \quad \(N=B+C\), si ottiene il \textit{metodo di Jacobi}.
+Scegliendo \(M=D-B\), \quad \(N=C\), si ottiene il \textit{metodo di Gauss-Seidel}.
+Per queste decomposizioni risulta \(\det(M \neq 0)\) se e solo se tutti gli elementi principali di \(A\)) sono non nulli.
+Indicando con \(J\) la matrice di iterazione del metodo di Jacobi, dalla \eqref{eq:3} si ha
+\begin{equation*}
+    G=(D-B)^{-1}C,
+\end{equation*}
+per cui la \eqref{eq:5} diviene
+\begin{equation*}
+    x^{(k)}=Jx^{(k-1)}+D^{-1}b.
+\end{equation*}
+Nella pratica il metodo di Jacobi viene implementato nel modo seguente:
+\begin{equation}
+    \label{eq:8}
+    x^{(k)}_i=\frac{1}{a_{ii}} \left[ b_i - \sum_{j=1,j \neq i}^n a_{ij}x_j^{(k-1)} \right], \quad i=1,2,...,n.
+\end{equation}
+In questo metodo quindi le componenti del vettore \(x^{(k)}\) sostituiscono simultaneamente al termine dell'iterazione le componenti di \(x^{(k-1)}\).
+Indicando con \(G\) la matrice di iterazione del medodo di Gauss-Seidel, dalla \eqref{eq:3} si ha
+\begin{equation*}
+    G=(D-B)^{-1}C,
+\end{equation*}
+per cui la \eqref{eq:5} diviene
+\begin{equation}
+    \label{eq:9}
+    x^{(k)}=Gx^{(k-1)}+(D-B)^{-1}b.
+\end{equation}
+Per descrivere come il metodo di Gauss-Seidel viene implementato conviene prima trasformare la \eqref{eq:9} così
+\begin{gather*}
+    (D-B)x^{(k)}=Cx^{(k-1)}+b, \\
+    Dx^{(k)}=Bx^{(k)}+Cx^{(k-1)}+b, \\
+    x^{(k)}=D^{-1}Bx^{(k)}+D^{-1}Cx^{(k-1)}+D^{-1}b.
+\end{gather*}
+Il metodo di Gauss-Seidel viene allora implementato nel modo seguente:
+\begin{equation}
+    \label{eq:10}
+    x^{(k)}_i= \frac{1}{a_{ii}} \left[ b_i-\sum^{i-1}_{j=1} a_{ij}x^{(k)}_{j} - \sum^{n}_{j=i+1} a_{ij}x^{(k-1)}_j \right], \quad i=1,2,...,n.
+\end{equation}
+La differenza fondamentale con il metodo di Jacobi è che qui per calcolare le componenti del vettore \(x^{(k)}\) si utilizzano anche le componenti già calcolate dello stesso vettore. Quindi nell'implementazione del metodo di Jacobi è necessario disporre contemporaneamente, di entrambi i vettori \(x^{(k)}\) e \(x^{(k-1)}\), mentre per il metodo di Gauss-Seidel è sufficiente disporre di un solo vettore in cui si sostituiscono le componenti via via che si calcolano.
+In molte applicazioni il metodo di Gauss-Seidel, che utilizza immediatamente i valori calcolati nella iterazione corrente, risulta più veloce del metodo di Jacobi. Però esistono casi in cui risulta non solo che il metodo di Jacobi sia più veloce del metodo di Gauss-Seidel, ma anche che il metodo di Jacobi sia convergente e quello di Gauss-Seidel no.
+Un importante risultato che spesso permette di non utilizzare le più complesse condizioni per la verifica della convergenza dei metodi è il seguente teorema:
+\begin{remark}
+Se la matrice \(A\) è a predominanza diagonale in senso stretto (per righe o per colonne), il metodo di Jacobi e il metodo di Gauss-Seidel convergono.
+\end{remark}
+Per semplicità si omette la dimostrazione.
+\subsection{Il metodo iterativo SOR}
+Un terzo metodo iterativo, chiamato \textit{Successive Over Relaxation (SOR) Method}, o comunemente \textit{metodo del sovrarilassamento}, è una generalizzazione e un perfezionamento del metodo di Gauss-Seidel. L'idea alla base del procedimento è:
+\\
+Per ogni metodo iterativo, nel trovare \(x^{(k+1)}\) da \(x^{(k)}\), ci spostiamo di una certa quantità in una particolare direzione da \(x^{(k)}\) a \(x^{k+1)}\). Questa direzione è il vettore \(x^{(k+1)}-x^{(k)}\), poiché \(x^{(k+1)}=x^{(k)}+(x^{(k+1)}-x^{(k)})\). Se assumiamo che la direzione da \(x^{(k)}\) a \(x^{k+1)}\) ci avvicini, non del tutto, alla soluzione corretta \(x\), allora avrebbe senso spostarsi nella medesima direzione \(x^{(k+1)}-x^{(k)}\), ma di una quantità maggiore.
+Il metodo si ricava dal metodo di Gauss-Seidel come segue. In un primo luogo, possiamo scrivere l'equazione di Gauss-Seidel come
+\begin{equation*}
+    Dx^{(k+1)}=b-Lx^{(k+1)}-Ux^{(k)},
+\end{equation*}
+in modo che
+\begin{equation*}
+    x^{(k+1)}=D^{-1}[b-Lx{^(k+1)}-Ux^{(k)}].
+\end{equation*}
+Possiamo sottrarre \(x^{(k)}\) da entrambi i lati per ottenere
+\begin{equation*}
+    x^{(k+1)}-x^{(k)}=D^{-1}[b-Lx^{(k+1)}-Dx^{(k)}-Ux{(k)}].
+\end{equation*}
+Adesso pensando all'equazione come al perfezionamento di Gauss-Seidel\\\(\left(x^{(k+1)}+x^{(k)}\right)_{GS}\). Come suggerito, abbiamo che la convergenza \(x^{(k)} \rightarrow x\) della sequenza di approssimazioni soluzione è spesso più veloce del metodo di Gauss-Seidel standard. L'idea del metodo del SOR Method è di iterare
+\begin{equation*}
+    x^{(k+1)}=x^{(k)}+ \omega \left(x^{(k+1)}-x^{(k)}\right)_{GS}
+\end{equation*}
+dove, come abbiamo appena mostrato,
+\begin{equation*}
+    \left(x^{(k+1)}-x^{(k)}\right)_{GS}=D^{-1}[b-Lx^{(k+1)}-Dx^{(k)}-Ux^{(k)}],
+\end{equation*}
+e dove in generale \(1<\omega<2\), affinché il metodo converga. Notiamo che se \(\omega=1\) il metodo diventa Gauss-Seidel standard.
+Scritto nel dettaglio, il SOR Method è
+\begin{equation*}
+    x^{(k+1)}=x^{(k)}+ \omega D^{-1}[b-Lx^{(k+1)}-Dx^{(k)}-Ux^{(k)}].
+\end{equation*}
+Possiamo moltiplicare entrambi i lati per la matrice \(D\), dividere entrambi i lati per \(\omega\) e riscrivere come
+\begin{equation*}
+    \frac{1}{\omega}Dx^{(k+1)}=\frac{1}{\omega}Dx^{(k)}+[b-Lx^{(k+1)}-Dx^{(k)}-Ux^{(k)}],
+\end{equation*}
+quindi raccogliere il termine \(x^{(k+1)}\) da un lato e ottenere
+\begin{align*}
+    (L+ \frac{1}{\omega}D)x^{(k+1)} &= \frac{1}{\omega}Dx^{(k)}+[b-Dx^{(k)}-Ux^{(k)}]\\
+    &= (\frac{1}{\omega}D-D-U)x^{(k)}+b
+\end{align*}
+Quando risolviamo per \(x^{(k+1)}\), otteniamo
+\begin{equation*}
+    x^{(k+1)}=(L\frac{1}{\omega}D)^{-1}[(\frac{1}{\omega}D-D-U)x^{(k)}+b].
+\end{equation*}
+\\
+In pratica, tipicamente utilizzeremo un computer per eseguire le iterazioni del SOR Method e dei due metodi trattati in precedenza. Abbiamo quindi bisogno di un algoritmo implementabile per utilizzare  per sistemi \(n \times n\). Diamo un possibile set di algoritmi per trovare l'elemento \(x_i^{(k+1)}\) dati \(x_1^{(k)},x_2^{(k)},...,x_n^{(k)}\).
+\vspace{0,5cm}
+\begin{table}[h!]
+    \begin{center}
+        \label{tab:table1}
+        \begin{tabular}{c c}
+            \toprule
+            \textbf{Method} & \textbf{Algoritmo per eseguire l'iterazione \(k+1\) for \(i=1\) to \(n\) do:}\\
+            \midrule
+            \vspace{0,5cm}
+            Jacobi & \( x^{(k+1)}_i = x^{(k)}_i \frac{1}{a_{ii}} \left[ b_i- \sum^{i-1}_{j=1} a_{ij}x^{(k)}_j - \sum^{n}_{j=i} a_{ij}x^{(k)}_j \right] \) \\
+            \vspace{0,5cm}
+            Gauss-Seidel & \( x^{(k+1)}_i = x^{(k)}_i \frac{1}{a_{ii}} \left[ b_i- \sum^{i-1}_{j=1} a_{ij}x^{(k+1)}_{j} - \sum^{n}_{j=i} a_{ij}x^{(k)}_j \right] \) \\
+            SOR & \( x^{(k+1)}_i = x^{(k)}_i \frac{\omega}{a_{ii}} \left[ b_i- \sum^{i-1}_{j=1} a_{ij}x^{(k+1)}_{j} - \sum^{n}_{j=i} a_{ij}x^{(k)}_j \right] \) \\
+            \bottomrule
+        \end{tabular}
+    \end{center}
+\end{table}
+
+\section{Descrizione degli algoritmi di soluzione}
+\subsection{Rappresentazione delle matrici sparse}
+I formati tradizionalmente usati per rappresentare matrici sparse matrici sparse possono essere divisi in due g
+\subsection{Implementazionerupi dei metodi iterativi}
+Gli algoritmi illustrati nella precedente sezione trovano quindi applicazione attraverso l'utilizzo di calcolatori in vari linguaggi di programmazione tipicamente su matrici sparse grandi.\\
+I seguenti programmi MatLab prendono in input la matrice \(A\), il vettore \(b\) ed una approssimazione \(x_{old}\) di \(x\) e restituiscono in output la nuova approssimazione \(x_{new}\) di \(x\) generata dal metodo corrispondente. Per il metodo di Gauss-Seidel \(x_{new}\) è sovrascritto direttamente in \(x_{old}\).
+
+\begin{verbatim}
+    function [x_new] = jacobi_mio(A,b,x_old)
+    n=length(b);
+    for k=1:n
+        s=0;
+        for j=1:k-1;
+            s=s+A(k,j)*x_old(j);
+        end
+        for j=k+1:n
+            s=s+A(k,j)*x_old(j);
+        end
+        x_new(k)=(b(k)-s)/A(k,k);
+    end
+    end
+    
+    
+    function [x_old] = gauus_seidel_mio(A,b,x_old)
+    n=length(b);
+    for k=1:n
+        s=0;
+        for j=1:k-1
+            s=s+A(k,j)*x_old(j);
+        end
+        for j=k+1:n
+            s=s+A(k,j)*x_old(j);
+        end
+        x_old(k)=(b(k)-s)/A(k,k);
+    end
+    end
+
+\end{verbatim}
+
+Si implementa poi anche il criterio di arresto indicando un valore \(tol\) che rappresenta una tolleranza prefissata ed un valore \(max\_iter\) che rappresenta il numero massimo di iterazioni. Nel caso che segue osserviamo il metodo di Jacobi che si arresta quando \(|x^{(k+1)}-x^{(k)}|_\infty \leq tol\) o \(k > max\_iter\).
+
+\begin{verbatim}
+    function [x_new] = jacobi_solve(A,b,x_old,tol,max_iter)
+    err=+inf;
+    it=0;
+    while(err>tol && it<=max_iter)
+        x_new=jacobi_mio(A,b,x_old);
+        x_old=x_new';
+        it=it+1;
+    end
+    it
+    end
+\end{verbatim}
+
+Le implementazioni MatLab mostrate come esempio sono state seguite per l'implementazione dei tre metodi in JAVA. Si utilizza un costrutto while per applicare il criterio di arresto e al suo interno due costrutti for scorrono gli elementi della matrice per calcolare la sommatoria prevista dai metodi iterativi. Per ogni iterazioni sulle righe viene quindi calcolato un elemento dell'approssimazione. Una volta che si esce dal ciclo principale all'interno di un array troviamo il risultato del metodo che viene restituito stampando il numero di iterazioni effettuate.
+
+
+\end{document}
