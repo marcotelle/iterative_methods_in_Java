@@ -3,15 +3,50 @@
 \usepackage{amsmath}
 \usepackage{amsthm}
 \usepackage{booktabs}
+\usepackage{multirow}
+\usepackage{csquotes}
+\usepackage{listings}
+\usepackage[backend=biber, style=alphabetic, sorting=ynt]{biblatex}
+\addbibresource{progetto.bib} 
+
+\usepackage{xcolor}
+
+%New colors defined below
+\definecolor{codegreen}{rgb}{0,0.6,0}
+\definecolor{codegray}{rgb}{0.5,0.5,0.5}
+\definecolor{codepurple}{rgb}{0.58,0,0.82}
+\definecolor{backcolour}{rgb}{0.95,0.95,0.92}
+
+%Code listing style named "mystyle"
+\lstdefinestyle{mystyle}{
+  backgroundcolor=\color{backcolour},   commentstyle=\color{codegreen},
+  keywordstyle=\color{magenta},
+  numberstyle=\tiny\color{codegray},
+  stringstyle=\color{codepurple},
+  basicstyle=\ttfamily\footnotesize,
+  breakatwhitespace=false,         
+  breaklines=true,                 
+  captionpos=b,                    
+  keepspaces=true,                 
+  numbers=left,                    
+  numbersep=5pt,                  
+  showspaces=false,                
+  showstringspaces=false,
+  showtabs=false,                  
+  tabsize=2
+}
+
+%"mystyle" code listing set
+\lstset{style=mystyle}
 
 
 
 \title{Progetto di Esperienze di Programmazione\\
     \large Implementazione di metodi iterativi in JAVA\\per matrici sparse grandi}
 \author{Marco Telleschi}
-\date{2020-02-27}
+\date{2020-04-10}
 
-\newtheorem*{remark}{Teorema.}
+\newtheorem*{remark}{Teorema}
 
 \begin{document}
 
@@ -47,7 +82,7 @@ dove \(x = [x_1,x_2,...,x_n^T]\) è detto \textit{vettore delle incognite}. Con 
 \begin{equation*}
     Ax = b.
 \end{equation*}
-Risolvere un sistema lineare significa calcolare, se esiste, un vettore \(x\) che soddisfa le \eqref{eq:1}. La matrice \(A\) si dice \textit{matrice dei coefficienti}, il vettore \(b\) \textit{vettore dei termini noti}, la matrice \([A|b]\), ottenuta affiancando alla matrice \(A\) la colonna \(b\), si dice \textit{matrice aumentata}. Se \(b=0\) il sistema si dice \textit{omogeneo}. Il sistema si dice \textit{consistente} se ha almeno una soluzione.
+Risolvere un sistema lineare significa calcolare, se esiste, un vettore \(x\) che soddisfa le \eqref{eq:1}.\\ La matrice \(A\) si dice \textit{matrice dei coefficienti}, il vettore \(b\) \textit{vettore dei termini noti}, la matrice \([A|b]\), ottenuta affiancando alla matrice \(A\) la colonna \(b\), si dice \textit{matrice aumentata}. Se \(b=0\) il sistema si dice \textit{omogeneo}. Il sistema si dice \textit{consistente} se ha almeno una soluzione.
 \subsection{Metodi iterativi per sistemi lineari}
 Per risolvere un sistema lineare come \eqref{eq:1} oltre al metodo di Gauss sono disponibili anche i \textit{metodi iterativi}, che sono particolarmente utili quando la matrice è di grandi dimensioni e sparsa.\\
 Sia \(A\) non singolare, dove per matrice singolare si intende una matrice quadrata  con determinante uguale a zero, e si consideri la decomposizione
@@ -76,18 +111,17 @@ si ottiene il seguente sistema equivalente al sistema dato
 Dato un vettore iniziale \(x^{(0)}\), si considera la successione \(x^{(1)},x^{(2)},...,\) così definita
 \begin{equation}
     \label{eq:5}
-    x^{(k)}=Px^{(k-1)}+q, \quad k=1,2,...
+    x^{(k+1)}=Px^{(k)}+q, \quad k\geq0
 \end{equation}
-La successione \(x^{(k)}\) si dice \textit{convergente} al vettore \(x^*\) e si indica con
+La successione \(x^{(k+1)}\) si dice \textit{convergente} al vettore \(x^*\) e si indica con
 \begin{equation*}
-    x^*=\lim_{k\to\infty} x^{(k)}, 
+    x^*=\lim_{k\to\infty} x^{(k+1)}, 
 \end{equation*}
 se al tendere di \(k\) all'infinito le componenti di \(x^{(k)}\) convergono alle corrispondenti componenti di \(x^*\). Allora passando al limite nella \eqref{eq:5} risulta
 \begin{equation}
     x^*=Px^*+q,
 \end{equation}
-cioè \(x^*\) è la soluzione del sistema \eqref{eq:4} e quindi del sistema dato.
-\\\\
+cioè \(x^*\) è la soluzione del sistema \eqref{eq:4} e quindi del sistema dato.\\
 La relazione \eqref{eq:5} individua un \textit{metodo iterativo} in cui, a partire da un vettore iniziale \(x^{(0)}\), la soluzione viene approssimata usando una successione \(\{x^{(k)}\}\) di vettori. La matrice \(P\) si dice \textit{matrice di iterazione del metodo}.\\
 Al variare del vettore iniziale \(x^{(0)}\) si ottengono dalla \eqref{eq:5} diverse successioni \(\{x^{(k)}\}\), alcune delle quali possono essere convergenti e altre no. Un metodo iterativo è detto \textit{convergente} se, qualunque sia il vettore iniziale \(x^{(0)}\), la successione \(\{x^{(k)}\}\) è convergente.
 \begin{remark}
@@ -97,24 +131,21 @@ dove \(\rho(P)\) è definito come il \textit{raggio spettrale} che equivale all'
 \begin{remark}
 Se esiste una norma matriciale \(\|.\|\) per cui \(\|P\|<1\), il metodo iterativo \eqref{eq:5} è convergente.
 \end{remark}
-
 In un metodo iterativo ad ogni iterazione il costo computazionale è principalmente determinato dall'operazione di moltiplicazione della matrice \(P\) per un vettore, che richiede \(n^2\) operazioni moltiplicativa se la matrice \(A\) non ha specifiche proprietà. Se invece \(A\) è sparsa, per esempio ha un numero di elementi non nulli dell'ordine di \(n\), la moltiplicazione di \(P\) per un vettore richiede molte meno operazioni moltiplicative. In questo caso i metodi iterativi possono risultare vantaggiosi rispetto a quelli diretti.
 \subsection{Criterio di arresto}
-Poiché con un metodo iterativo non è ovviamente possibile calcolare in generale la soluzione con un numero finito di iterazioni, occorre individuare dei criteri per l'arresto del procedimento. Il criterio più comunemente usato, fissata una tolleranza \(\epsilon\), che tiene conto anche della precisione utilizzata nei calcoli, è il seguente
-\begin{equation}
-    \label{eq:6}
-    \|x^{(k)}-x^{(k-1)}\| \leq \epsilon.
-\end{equation}
-Questa condizione però non garantisce che la soluzione sia stata approssimata con la precizione \(\epsilon\). Infatti per è:
+Poiché con un metodo iterativo non è ovviamente possibile calcolare in generale la soluzione con un numero finito di iterazioni, occorre individuare dei criteri per l'arresto del procedimento. Il criterio più comunemente usato è del tipo
 \begin{equation*}
-    x^{(k)}-x^{(k-1)}=[x^*-x^{(k-1)}]-[x^*-x^{(k)}]=e^{(k-1)}-e^{(k)}=(I-P)e^{(k-1)}.
+    \|x^{(k+1)}-x^{(k)}\| \leq tol.
 \end{equation*}
-Se esiste una norma \(\|.\|\) per cui \(\|P\|<1\) è \(\rho(P)<1\). Quindi la matrice \(I-P\) è non singolare e si ha
+dove \textit{tol} indica una tolleranza prefissata, eventualmente combinato con una condizione sul numero massimo di iterazioni \textit{max\_iter} eseguite in modo da garantire comunque (anche in caso di non convergenza) la terminazione del metodo.
+Per criteri basati sulla valutazione dell'errore assoluto e relativo in norma si osserva che se \(\rho(P)<1\) allora
 \begin{equation*}
-    \|e^{(k-1)}\| \leq \|(I-P)^{-1}\|\|x^{(k)}-x^{(k-1)}\|,
+    x^{(k+1)}-x^{(k)}=x^{(k+1)}-x+x-x^{(k)}=(P-I_n)(x^{(k)}-x),
 \end{equation*}
-per cui può accadere che \(\|e^{(k-1)}\|\) sia elevata anche se la condizione \eqref{eq:6} è verificata.\\
-In un programma che implementa un metodo iterativo deve essere sempre previsto un controllo sulla effettiva convergenza del metodo, ad esempio verificando che \(\|x^{(k)}-x^{(k-1)}\|_\infty\) decresca. Può infatti accadere che un metodo iterativo la cui matrice di iterazione \(P\) è tale che \(\rho(P)<1\), per gli effetti indotti dagli errori di arrotondamento, non converga in pratica, e questo accade, in particolare, quando la matrice A è fortemente mal condizionata e \(\rho(P)\) è molto vicino a 1. Inoltre anche se \(\rho(P)\) è piccolo è possibile che \eqref{eq:6} non sia verificata se \(\epsilon\) è incompatibile con la precisione con cui si opera. È perciò necessario interrompere l'esecuzione quando il numero delle iterazioni diventa troppo elevato.
+da cui
+\begin{equation*}
+    \|x^{(k)}-x\| \leq \|(P-I_n)^{-1}\|\|x^{(k+1)}-x^{(k)}\| \leq tol\|(P-I_n)^{-1}\|.
+\end{equation*}
 \subsection{Metodi iterativi di Jacobi e Gauss-Seidel}
 Fra i metodi iterativi individuati da una particolare scelta della decomposizione \eqref{eq:2} sono particolarmente importanti il metodo di Jacobi e il metodo di Gauss-Seidel, per i quali è possibile dare delle condizioni sufficienti di convergenza verificate da molte delle matrici che si ottengono scrivendo problemi differenziali.\\
 Si consideri la decomposizione della matrice \(A\)
@@ -143,21 +174,21 @@ dove
 \end{equation*}
 Scegliendo \(M=D\), \quad \(N=B+C\), si ottiene il \textit{metodo di Jacobi}.
 Scegliendo \(M=D-B\), \quad \(N=C\), si ottiene il \textit{metodo di Gauss-Seidel}.
-Per queste decomposizioni risulta \(\det(M \neq 0)\) se e solo se tutti gli elementi principali di \(A\)) sono non nulli.
+Per queste decomposizioni risulta \(det(M \neq 0)\) se e solo se tutti gli elementi principali di \textit{A} sono non nulli.
 Indicando con \(J\) la matrice di iterazione del metodo di Jacobi, dalla \eqref{eq:3} si ha
 \begin{equation*}
     G=(D-B)^{-1}C,
 \end{equation*}
 per cui la \eqref{eq:5} diviene
 \begin{equation*}
-    x^{(k)}=Jx^{(k-1)}+D^{-1}b.
+    x^{(k+1)}=Jx^{(k)}+D^{-1}b.
 \end{equation*}
 Nella pratica il metodo di Jacobi viene implementato nel modo seguente:
 \begin{equation}
     \label{eq:8}
-    x^{(k)}_i=\frac{1}{a_{ii}} \left[ b_i - \sum_{j=1,j \neq i}^n a_{ij}x_j^{(k-1)} \right], \quad i=1,2,...,n.
+    x^{(k+1)}_i=\frac{1}{a_{ii}} \left[ b_i - \sum_{j=1,j \neq i}^n a_{ij}x_j^{(k)} \right], \quad i=1,2,...,n.
 \end{equation}
-In questo metodo quindi le componenti del vettore \(x^{(k)}\) sostituiscono simultaneamente al termine dell'iterazione le componenti di \(x^{(k-1)}\).
+In questo metodo quindi le componenti del vettore \(x^{(k+1)}\) sostituiscono simultaneamente al termine dell'iterazione le componenti di \(x^{(k)}\).
 Indicando con \(G\) la matrice di iterazione del medodo di Gauss-Seidel, dalla \eqref{eq:3} si ha
 \begin{equation*}
     G=(D-B)^{-1}C,
@@ -165,95 +196,96 @@ Indicando con \(G\) la matrice di iterazione del medodo di Gauss-Seidel, dalla \
 per cui la \eqref{eq:5} diviene
 \begin{equation}
     \label{eq:9}
-    x^{(k)}=Gx^{(k-1)}+(D-B)^{-1}b.
+    x^{(k+1)}=Gx^{(k)}+(D-B)^{-1}b.
 \end{equation}
 Per descrivere come il metodo di Gauss-Seidel viene implementato conviene prima trasformare la \eqref{eq:9} così
 \begin{gather*}
-    (D-B)x^{(k)}=Cx^{(k-1)}+b, \\
-    Dx^{(k)}=Bx^{(k)}+Cx^{(k-1)}+b, \\
-    x^{(k)}=D^{-1}Bx^{(k)}+D^{-1}Cx^{(k-1)}+D^{-1}b.
+    (D-B)x^{(k+1)}=Cx^{(k)}+b, \\
+    Dx^{(k+1)}=Bx^{(k+1)}+Cx^{(k)}+b, \\
+    x^{(k+1)}=D^{-1}Bx^{(k+1)}+D^{-1}Cx^{(k)}+D^{-1}b.
 \end{gather*}
 Il metodo di Gauss-Seidel viene allora implementato nel modo seguente:
 \begin{equation}
     \label{eq:10}
-    x^{(k)}_i= \frac{1}{a_{ii}} \left[ b_i-\sum^{i-1}_{j=1} a_{ij}x^{(k)}_{j} - \sum^{n}_{j=i+1} a_{ij}x^{(k-1)}_j \right], \quad i=1,2,...,n.
+    x^{(k+1)}_i= \frac{1}{a_{ii}} \left[ b_i-\sum^{i-1}_{j=1} a_{ij}x^{(k+1)}_{j} - \sum^{n}_{j=i+1} a_{ij}x^{(k)}_j \right], \quad i=1,2,...,n.
 \end{equation}
-La differenza fondamentale con il metodo di Jacobi è che qui per calcolare le componenti del vettore \(x^{(k)}\) si utilizzano anche le componenti già calcolate dello stesso vettore. Quindi nell'implementazione del metodo di Jacobi è necessario disporre contemporaneamente, di entrambi i vettori \(x^{(k)}\) e \(x^{(k-1)}\), mentre per il metodo di Gauss-Seidel è sufficiente disporre di un solo vettore in cui si sostituiscono le componenti via via che si calcolano.
+La differenza fondamentale con il metodo di Jacobi è che qui per calcolare le componenti del vettore \(x^{(k+1)}\) si utilizzano anche le componenti già calcolate dello stesso vettore. Quindi nell'implementazione del metodo di Jacobi è necessario disporre contemporaneamente, di entrambi i vettori \(x^{(k+1)}\) e \(x^{(k)}\), mentre per il metodo di Gauss-Seidel è sufficiente disporre di un solo vettore in cui si sostituiscono le componenti via via che si calcolano.
 In molte applicazioni il metodo di Gauss-Seidel, che utilizza immediatamente i valori calcolati nella iterazione corrente, risulta più veloce del metodo di Jacobi. Però esistono casi in cui risulta non solo che il metodo di Jacobi sia più veloce del metodo di Gauss-Seidel, ma anche che il metodo di Jacobi sia convergente e quello di Gauss-Seidel no.
 Un importante risultato che spesso permette di non utilizzare le più complesse condizioni per la verifica della convergenza dei metodi è il seguente teorema:
 \begin{remark}
 Se la matrice \(A\) è a predominanza diagonale in senso stretto (per righe o per colonne), il metodo di Jacobi e il metodo di Gauss-Seidel convergono.
 \end{remark}
-Per semplicità si omette la dimostrazione.
 \subsection{Il metodo iterativo SOR}
-Un terzo metodo iterativo, chiamato \textit{Successive Over Relaxation (SOR) Method}, o comunemente \textit{metodo del sovrarilassamento}, è una generalizzazione e un perfezionamento del metodo di Gauss-Seidel. L'idea alla base del procedimento è:
-\\
-Per ogni metodo iterativo, nel trovare \(x^{(k+1)}\) da \(x^{(k)}\), ci spostiamo di una certa quantità in una particolare direzione da \(x^{(k)}\) a \(x^{k+1)}\). Questa direzione è il vettore \(x^{(k+1)}-x^{(k)}\), poiché \(x^{(k+1)}=x^{(k)}+(x^{(k+1)}-x^{(k)})\). Se assumiamo che la direzione da \(x^{(k)}\) a \(x^{k+1)}\) ci avvicini, non del tutto, alla soluzione corretta \(x\), allora avrebbe senso spostarsi nella medesima direzione \(x^{(k+1)}-x^{(k)}\), ma di una quantità maggiore.
-Il metodo si ricava dal metodo di Gauss-Seidel come segue. In un primo luogo, possiamo scrivere l'equazione di Gauss-Seidel come
+Un terzo metodo iterativo, chiamato \textit{Successive Over Relaxation (SOR) Method}, o comunemente \textit{metodo del sovrarilassamento}, è una generalizzazione e un perfezionamento del metodo di Gauss-Seidel. \\Per ogni metodo iterativo, nel trovare \(x^{(k+1)}\) da \(x^{(k)}\), ci spostiamo di una certa quantità in una particolare direzione da \(x^{(k)}\) a \(x^{(k+1)}\). Questa direzione è il vettore \(x^{(k+1)}-x^{(k)}\), poiché \(x^{(k+1)}=x^{(k)}+(x^{(k+1)}-x^{(k)})\). Se assumiamo che la direzione da \(x^{(k)}\) a \(x^{(k+1)}\) ci avvicini, non del tutto, alla soluzione corretta \(x\), allora avrebbe senso spostarsi nella medesima direzione \(x^{(k+1)}-x^{(k)}\), ma di una quantità maggiore. \\Il perfezionamento del metodo di Gauss-Seidel prende la forma di una media pesata tra l'iterazione precedente e quella calcolata dal metodo.
 \begin{equation*}
-    Dx^{(k+1)}=b-Lx^{(k+1)}-Ux^{(k)},
+    x_i^{(k+1)} = \omega (x_i^{(k+1)})_{GS} + (1-w)x_i^{(k)}
 \end{equation*}
-in modo che
+dove \((x_i^{(k+1)})_{GS}\) è l'iterazione di Gauss-Seidel e \(\omega\) è il parametro di rilassamento. L'idea è quindi quella di scegliere un \(\omega\) che accellererà la convergenza delle iterazioni verso la soluzione.\\In termini matriciali, il metodo SOR può essere scritto come
 \begin{equation*}
-    x^{(k+1)}=D^{-1}[b-Lx{^(k+1)}-Ux^{(k)}].
+    x^{(k+1)}=(D-\omega L)^{-1}[\omega U+(1-\omega )D]x^{(k)}+\omega(D-\omega L)^{-1}b
 \end{equation*}
-Possiamo sottrarre \(x^{(k)}\) da entrambi i lati per ottenere
-\begin{equation*}
-    x^{(k+1)}-x^{(k)}=D^{-1}[b-Lx^{(k+1)}-Dx^{(k)}-Ux{(k)}].
-\end{equation*}
-Adesso pensando all'equazione come al perfezionamento di Gauss-Seidel\\\(\left(x^{(k+1)}+x^{(k)}\right)_{GS}\). Come suggerito, abbiamo che la convergenza \(x^{(k)} \rightarrow x\) della sequenza di approssimazioni soluzione è spesso più veloce del metodo di Gauss-Seidel standard. L'idea del metodo del SOR Method è di iterare
-\begin{equation*}
-    x^{(k+1)}=x^{(k)}+ \omega \left(x^{(k+1)}-x^{(k)}\right)_{GS}
-\end{equation*}
-dove, come abbiamo appena mostrato,
-\begin{equation*}
-    \left(x^{(k+1)}-x^{(k)}\right)_{GS}=D^{-1}[b-Lx^{(k+1)}-Dx^{(k)}-Ux^{(k)}],
-\end{equation*}
-e dove in generale \(1<\omega<2\), affinché il metodo converga. Notiamo che se \(\omega=1\) il metodo diventa Gauss-Seidel standard.
-Scritto nel dettaglio, il SOR Method è
-\begin{equation*}
-    x^{(k+1)}=x^{(k)}+ \omega D^{-1}[b-Lx^{(k+1)}-Dx^{(k)}-Ux^{(k)}].
-\end{equation*}
-Possiamo moltiplicare entrambi i lati per la matrice \(D\), dividere entrambi i lati per \(\omega\) e riscrivere come
-\begin{equation*}
-    \frac{1}{\omega}Dx^{(k+1)}=\frac{1}{\omega}Dx^{(k)}+[b-Lx^{(k+1)}-Dx^{(k)}-Ux^{(k)}],
-\end{equation*}
-quindi raccogliere il termine \(x^{(k+1)}\) da un lato e ottenere
-\begin{align*}
-    (L+ \frac{1}{\omega}D)x^{(k+1)} &= \frac{1}{\omega}Dx^{(k)}+[b-Dx^{(k)}-Ux^{(k)}]\\
-    &= (\frac{1}{\omega}D-D-U)x^{(k)}+b
-\end{align*}
-Quando risolviamo per \(x^{(k+1)}\), otteniamo
-\begin{equation*}
-    x^{(k+1)}=(L\frac{1}{\omega}D)^{-1}[(\frac{1}{\omega}D-D-U)x^{(k)}+b].
-\end{equation*}
-\\
-In pratica, tipicamente utilizzeremo un computer per eseguire le iterazioni del SOR Method e dei due metodi trattati in precedenza. Abbiamo quindi bisogno di un algoritmo implementabile per utilizzare  per sistemi \(n \times n\). Diamo un possibile set di algoritmi per trovare l'elemento \(x_i^{(k+1)}\) dati \(x_1^{(k)},x_2^{(k)},...,x_n^{(k)}\).
-\vspace{0,5cm}
+dove le matrici \(D\), \(-L\) e \(-U\) rappresentano rispettivamente la diagonale, la sottomatrice strettamente triangolare inferiore e la sottomatrice strettamente triangolare superiore.\\ Se \(\omega = 1\), il metodo SOR si semplifica con il metodo di Gauss-Seidel. Un teorema (Kahan, 1958) mostra che SOR non converge se \(\omega\) è fuori dall'intervallo \((0,2)\). In generale non è possibile calcolare in anticipo il valore di \(\omega\) che massimizzerà la convergenza di SOR.\\
+In pratica, tipicamente utilizzeremo un computer per eseguire le iterazioni dei tre metodi trattati. Avremo quindi bisogno di un algoritmo implementabile per utilizzare  per sistemi \(n \times n\). Un possibile set di algoritmi per trovare l'elemento \(x_i^{(k+1)}\) dati \(x_1^{(k)},x_2^{(k)},...,x_n^{(k)}\) può essere:
+
+\newpage
 \begin{table}[h!]
     \begin{center}
         \label{tab:table1}
-        \begin{tabular}{c c}
+        \begin{tabular}{p{1.5cm}|p{11cm}}
             \toprule
             \textbf{Method} & \textbf{Algoritmo per eseguire l'iterazione \(k+1\) for \(i=1\) to \(n\) do:}\\
             \midrule
-            \vspace{0,5cm}
-            Jacobi & \( x^{(k+1)}_i = x^{(k)}_i \frac{1}{a_{ii}} \left[ b_i- \sum^{i-1}_{j=1} a_{ij}x^{(k)}_j - \sum^{n}_{j=i} a_{ij}x^{(k)}_j \right] \) \\
-            \vspace{0,5cm}
-            Gauss-Seidel & \( x^{(k+1)}_i = x^{(k)}_i \frac{1}{a_{ii}} \left[ b_i- \sum^{i-1}_{j=1} a_{ij}x^{(k+1)}_{j} - \sum^{n}_{j=i} a_{ij}x^{(k)}_j \right] \) \\
-            SOR & \( x^{(k+1)}_i = x^{(k)}_i \frac{\omega}{a_{ii}} \left[ b_i- \sum^{i-1}_{j=1} a_{ij}x^{(k+1)}_{j} - \sum^{n}_{j=i} a_{ij}x^{(k)}_j \right] \) \\
+            J & \( x^{(k+1)}_i=\frac{1}{a_{ii}} \left[ b_i - \sum_{j=1,j \neq i}^n a_{ij}x_j^{(k)} \right] \) \\
+            GS & \( x^{(k+1)}_i= \frac{1}{a_{ii}} \left[ b_i-\sum^{i-1}_{j=1} a_{ij}x^{(k+1)}_{j} - \sum^{n}_{j=i+1} a_{ij}x^{(k)}_j \right] \) \\
+            SOR & \( x^{(k+1)}_i= (1-\omega)x_i^{(k)} + \frac{\omega}{a_{ii}} \left[ b_i-\sum^{i-1}_{j=1} a_{ij}x^{(k+1)}_{j} - \sum^{n}_{j=i+1} a_{ij}x^{(k)}_j \right] \) \\
             \bottomrule
         \end{tabular}
     \end{center}
 \end{table}
 
-\section{Descrizione degli algoritmi di soluzione}
+\section{Algoritmi di soluzione}
 \subsection{Rappresentazione delle matrici sparse}
-I formati tradizionalmente usati per rappresentare matrici sparse matrici sparse possono essere divisi in due g
-\subsection{Implementazionerupi dei metodi iterativi}
-Gli algoritmi illustrati nella precedente sezione trovano quindi applicazione attraverso l'utilizzo di calcolatori in vari linguaggi di programmazione tipicamente su matrici sparse grandi.\\
-I seguenti programmi MatLab prendono in input la matrice \(A\), il vettore \(b\) ed una approssimazione \(x_{old}\) di \(x\) e restituiscono in output la nuova approssimazione \(x_{new}\) di \(x\) generata dal metodo corrispondente. Per il metodo di Gauss-Seidel \(x_{new}\) è sovrascritto direttamente in \(x_{old}\).
+I formati tradizionalmente usati per rappresentare matrici sparse possono essere divisi in due gruppi:
+\begin{itemize}
+    \item Quelle che supportano operazione di modifica efficienti. Tipicamente usate per costruire le matrici.
+    \item Quelle che supportano operazioni di accesso e matriciali efficienti.
+\end{itemize}
+\subsubsection{Rappresentazione compressed sparse row}
+La rappresentazione \textit{compressed sparse row} (CSR) o \textit{compressed row storage} (CRS) o \textit{Yale format} appartiene al secondo gruppo. Questo formato permette operazioni di accesso alle righe e di moltiplicazione matrice-vettore veloci. Il formato è in uso almeno dalla metà degli anni '60, con la sua prima descrizione completa che apparve nel 1967.\\
+Il formato CSR memorizza una matrice \(m \times n\) sparsa \(M\) utlizzando tre array mono-dimensionali che chiameremo \texttt{values}, \texttt{columnIndices} e \texttt{rowPointers}. Sia \texttt{nnz} il numero di elementi diversi da zero della matrice \(M\).
+\begin{itemize}
+    \item Gli array \texttt{values} e \texttt{columnIndices} sono di dimensione \texttt{nnz} e contengono rispettivamente i valori degli elementi diversi da zero e gli indici di quegli elementi.
+    \item L'array \texttt{rowPointers} ha un elemento per riga e codifica l'indice della locazione di \texttt{values} dove inizia una data riga.
+\end{itemize}
+Per esempio, la matrice
+\begin{equation*}
+   \left[
+    \begin{matrix}
+        0 & 0 & 0 & 0 \\
+        5 & 8 & 0 & 0 \\
+        0 & 0 & 3 & 0 \\
+        0 & 6 & 0 & 0 
+    \end{matrix}
+    \right]
+\end{equation*}
+è una matrice \(4 \times 4\) con 4 elementi diversi da zero. Gli array saranno rispettivamente
+\begin{verbatim}
+    values = [5,8,3,6]
+    columnIndices = [0,1,2,1]
+    rowPointers = [0,0,2,3,4]
+\end{verbatim}
+Per estrarre una riga si definisce
+\begin{verbatim}
+    rowStart = rowPointers[row]
+    rowEnd = rowPointers[row+1]
+\end{verbatim}
+Quindi prendiamo parti di \texttt{values} e \texttt{columnIndices} che iniziano a\\\texttt{rowStart} e terminano a \texttt{rowEnd}.\\
+Ad esempio per estrarre la riga 1 (la seconda) della matrice impostiamo \texttt{rowStart=0} e \texttt{rowEnd=2}. Quindi prendiamo le parti \texttt{values[0:2]=[5,8]} e \texttt{columnIndices[0:2]=[0,1]}. Quindi ora sappiamo che nella riga 1 abbiamo due elementi, rispettivamente alla colonna 0 e 1 con valore 5 e 8.\\
+Si nota che in questo formato, il primo valore di \texttt{rowPointers} è sempre zero e l'ultimo è sempre \texttt{nnz}. Questo valore sarebbe quindi ridondante ma si mantiene per poter utilizzare la formula \texttt{rowPointers[i+1]-rowPointers[i]} per trovare la lunghezza di qualsiasi riga \texttt{i}. Inoltre il costo ridondante diventa insignificante per una matrice sufficientemente grande.
 
+\subsection{Applicazione dei metodi iterativi} \label{applicazione}
+Gli algoritmi illustrati nella sezione precedente trovano applicazione attraverso l'utilizzo di calcolatori in vari linguaggi di programmazione tipicamente su matrici sparse grandi.\\
+I seguenti programmi MatLab prendono in input la matrice \(A\), il vettore \(b\) ed una approssimazione \(x_{old}\) di \(x\) e restituiscono in output la nuova approssimazione \(x_{new}\) di \(x\) generata dal metodo corrispondente. Per il metodo di Gauss-Seidel \(x_{new}\) è sovrascritto direttamente in \(x_{old}\).
 \begin{verbatim}
     function [x_new] = jacobi_mio(A,b,x_old)
     n=length(b);
@@ -270,38 +302,775 @@ I seguenti programmi MatLab prendono in input la matrice \(A\), il vettore \(b\)
     end
     
     
-    function [x_old] = gauus_seidel_mio(A,b,x_old)
+    function [x_new] = gauss_seidel_mio(A,b,x_old)
     n=length(b);
     for k=1:n
         s=0;
         for j=1:k-1
-            s=s+A(k,j)*x_old(j);
+            s=s+A(k,j)*x_new(j);
         end
         for j=k+1:n
             s=s+A(k,j)*x_old(j);
         end
-        x_old(k)=(b(k)-s)/A(k,k);
+        x_new(k)=(b(k)-s)/A(k,k);
     end
     end
-
 \end{verbatim}
-
-Si implementa poi anche il criterio di arresto indicando un valore \(tol\) che rappresenta una tolleranza prefissata ed un valore \(max\_iter\) che rappresenta il numero massimo di iterazioni. Nel caso che segue osserviamo il metodo di Jacobi che si arresta quando \(|x^{(k+1)}-x^{(k)}|_\infty \leq tol\) o \(k > max\_iter\).
-
+Si implementa poi anche il criterio di arresto indicando un valore \(tol\) che rappresenta una tolleranza prefissata ed un valore \(max\_iter\) che rappresenta il numero massimo di iterazioni. Nel caso che segue osserviamo il metodo di Jacobi che si arresta quando \(\|x^{(k+1)}-x^{(k)}\|_\infty \leq tol\) o \(k > max\_iter\).
 \begin{verbatim}
-    function [x_new] = jacobi_solve(A,b,x_old,tol,max_iter)
+    function [x_new] = jacobi_solver(A,b,x_old,tol,max_iter)
     err=+inf;
     it=0;
     while(err>tol && it<=max_iter)
         x_new=jacobi_mio(A,b,x_old);
+        err=norm(x_new'-x_old, 'inf');
         x_old=x_new';
         it=it+1;
     end
     it
     end
 \end{verbatim}
+Le implementazioni MatLab mostrate come esempio sono state seguite per l'implementazione dei tre metodi in JAVA. Si utilizza un costrutto while per applicare il criterio di arresto e al suo interno due costrutti for scorrono gli elementi della matrice per calcolare la sommatoria prevista dai metodi iterativi. Per ogni iterazione sulle righe viene quindi calcolato un elemento dell'approssimazione. Una volta che si esce dal ciclo principale all'interno di un array troviamo il risultato del metodo che viene restituito stampando il numero di iterazioni effettuate.
 
-Le implementazioni MatLab mostrate come esempio sono state seguite per l'implementazione dei tre metodi in JAVA. Si utilizza un costrutto while per applicare il criterio di arresto e al suo interno due costrutti for scorrono gli elementi della matrice per calcolare la sommatoria prevista dai metodi iterativi. Per ogni iterazioni sulle righe viene quindi calcolato un elemento dell'approssimazione. Una volta che si esce dal ciclo principale all'interno di un array troviamo il risultato del metodo che viene restituito stampando il numero di iterazioni effettuate.
+\section{Scelte implementative}
+Mostriamo quindi tutte le scelte effettuate per l'implementazione in \texttt{JAVA} di quanto descritto sopra. \\
 
+\subsection{Implementazione del CSR format}
+Per implementare i tre array del formato \texttt{values}, \texttt{columnIndices} e\\\texttt{rowPointers} si utilizzano tre array JAVA rispettivamente uno di double per i valori e due di interi. Per praticità, si memorizza anche un intero \texttt{length} contenente la dimensione della matrice.\\
+Le matrici vengono convertite in questo formato a partire dalla rappresentazione tradizionale \textit{compact Matrix}, composta anch'essa da tre array che memorizzano rispettivamente i valori degli elementi diversi da zero e gli indici di riga e colonna.\\Gli elementi vengono inseriti nella matrice, memorizzando i valori necessari, gradualmente, in modo da avere una maggiore flessibilità. Per fare ciò gli array della matrice vengono gestiti esplicitamente come array dinamici, raddoppiandone la dimensione ogni volta che il numero di elementi lo richiede.\\ 
+Una volta che la memorizzazione è terminata, la matrice viene dichiarata \textit{read only} ed è possibile procedere alla conversione nel formato più efficiente.\\
+Gli array della matrice compact vengono ordinati utilizzando Quicksort, prima per riga e successivamente per colonna all'interno di ogni riga. \\Si procede quindi alla conversione vera e propria. Scorrendo gli elementi, i vettori \texttt{values} e \texttt{columnIndices} vengono copiati e per ogni elemento si incrementa la rispettiva riga all'interno di \texttt{rowPointers}. Al termine si somma ad ogni elemento di \texttt{rowPointers} il precedente in modo da avere anche il numero di elementi diversi da zero nelle righe precedenti.\\
+Per la matrice così convertita oltre che alcune operazioni di \texttt{get} vengono fornite una funzione di stampa e una di copia:
+\begin{itemize}
+    \item La funzione \texttt{print} scorre le righe della matrice e per ognuna di esse stampa gli elementi diversi da zero, sfruttando le proprietà di \\\texttt{rowPointers}, e degli zeri nelle altre posizioni.
+    \item La funzione \texttt{copy} alloca una nuova matrice CSR vi copia i tre array. Viene utilizzata per l'applicazione dei metodi iterativi.
+\end{itemize}
 
+Tra le funzioni getter risulta interessante quella per accedere un elemento. La funzione \texttt{getElement(int i, int j)} che scorre gli indici colonna della riga passata come parametro, indiduata mediante le proprietà di \texttt{rowPointers}, per verificare se ce n'è uno che corrisponde alla colonna dell'elemento richiesto.
+
+\subsection{Implementazione dei metodi iterativi}
+I metodi iterativi sono rappresentati come risolutori di sistemi lineari. Implementano l'interfaccia \texttt{LinearSystemSolver} che contiene metodi fondamentali quali:
+\begin{itemize}
+    \item \texttt{Solver} che prendendo come parametro l'array dei termini noti risolve il sistema lineare.
+    \item \texttt{DiagonallyDominant} che controlla la predominanza diagoanle della matrice.
+    \item \texttt{subtract} che effettua la sottrazione tra gli elementi di due array.
+    \item \texttt{norm} che calcola la norma infinito di un vettore.
+\end{itemize}
+
+Gli ultimi tre metodi vengono implementati all'interno di una classe astratta, essendo utilizzabili genericamente da uno dei tre metodi iterativi.\\
+
+Per ognuno dei metodi iterativi trattati troviamo una classe specifica. Come costruttore si utilizza quello della classe astratta che effettua una copia della matrice necessaria per l'applicazione dei metodi.\\
+La convergenza dei tre metodi viene assicurata solamente per matrici predominanti diagonali. Se la matrice, su cui si decide di operare, non rispettasse la suddetta proprietà la soluzione potrebbe non convergere.
+\subsubsection{Implementazione del metodo di Gauss-Seidel}
+Il metodo \texttt{Solver} lavora su una copia della matrice utilizzando l'array \texttt{b} dei termini noti, passato come parametro, e due array di ausiliari \texttt{x} e \texttt{xOld}. All'interno di un ciclo si scorrono, mediante costrutti \texttt{for}, gli elementi della matrice sommandone il prodotto per la rispettiva soluzione \texttt{x}, se è già stato calcolato, o \texttt{xOld}. Al termine dei cicli \texttt{for} sono state calcolate le sommatorie del metodo iterativo e si può procedere al calcolo di \texttt{x[i]}, con \texttt{i} indice della riga che stiamo trattando. \\Una volta terminate le righe l'iterazione è completa e si può procedere alla successiva, se non è stato raggiunto il criterio di arresto.  \\Il ciclo \texttt{while} termina quando il numero di iterazioni ha raggiunto il massimo o \(\|\)\texttt{x-xOld}\(\|\) è minore della tolleranza fissata. Il metodo JAVA restituisce l'array di double contenente l'approssimazione calcolata e stampa il numero di iterazioni che sono state necessarie.\\
+
+\subsubsection{Implementazione del metodo di Jacobi}
+Il metodo di Jacobi differisce dal metodo precedente solamente per il fatto che, all'interno del ciclo, ogni elemento della matrice viene moltiplicato, come previsto, solo per la rispettiva soluzione dell'iterazione precedente \texttt{xOld}. \\Il metodo JAVA rimane inalterato in tutti gli altri aspetti.\\
+
+\subsubsection{Implementazione del metodo SOR}
+Il metodo SOR aggiunge al prorio costruttore il parametro \(\omega\), che verrà poi utilizzato nel calcolo di \texttt{x[i]}, con \texttt{i} indice che scorre le righe della matrice. \\Il parametro viene moltiplicato a \texttt{x[i]}, calcolato come nel metodo di Gauss-Seidel, e successivamente a questo prodotto viene sommato il calcolo dell'iterazione precedente moltiplicato per l'opposto del suddetto parametro.\\
+
+\section{Testing}
+\subsection{Tecniche}
+Lo scopo principale per cui sono stati implementati i metodi iterativi e la rappresentazione secondo il metodo CSR è quello di operare in maniera efficiente su matrici sparse grandi. Nel testing quindi si è cercato quindi di sottolineare principalmente questo aspetto.\\Si sceglie di lavorare a partire da una matrice identità \textit{I} di dimensione \textit{n}, con \textit{n} parametro selezionabile per ogni test. Alla matrice \textit{I} si somma una una matrice \textit{A} con valori \(-0.27\) sulla prima sovradiagonale e sulla prima sottodiagonale. Si ottiene quindi una matrice \textit{B} formata come segue:\\
+\begin{equation*}
+B=
+   \left[
+        \begin{matrix}
+            1 & -0.27 & 0 & & & \dots & 0 \\
+            -0.27 & 1 & -0.27 & 0 & & \dots & 0 \\
+            0 & \ddots & \ddots & \ddots & 0 & \dots & 0 \\
+             & & \ddots & \ddots & \ddots & & \\
+            0 & \dots & 0 & \ddots & \ddots & \ddots & 0 \\
+            0 & \dots & & 0 & -0.27 & 1 & -0.27 \\
+            0 & \dots & & & 0 & -0.27 & 1 \\
+        \end{matrix}
+    \right]
+\end{equation*}
+Alla matrice \textit{B} si somma quindi una terza matrice \textit{C} contenente \textit{n} elementi di valore casuale \(0 \leq a \geq 0.59\) in posizione \((i,j)\), con \textit{i} e \textit{j} indici anch'essi calcolati in maniera casuale. In questo modo la matrice \(I\) mantiene la predominanza diagonale e i metodi iterativi convergeranno.\\La matrice viene allocata come detto prima con una rappresentazione \textit{compact} e quindi convertita in formato \textit{CSR}.\\Ogni volta che un metodo viene applicato a una matrice si calcola il tempo di esecuzione con la funzione \texttt{System.nanoTime()}.\\ Una volta allocata la matrice si fissa il vettore soluzione \textit{xEsatto} con tutti componenti di valore \textit{1}. Si procede al calcolo del vettore dei termini noti \textit{b} come \(A*xEsatto = b\). Con il vettore \textit{b} calcolato si procede alla risoluzione del sistema mediante i metodi iterativi per valutare l'errore nel calcolo di \textit{x} approssimato.\\Per ogni iterazione del metodo vengono stamati: 
+\begin{itemize}
+    \item numero di iterazione;
+    \item delta: differenza in norma infinito tra i vettori soluzioni di due iterazioni successive;
+    \begin{equation*}
+        || x^{(k+1)} -x^{(k)} ||
+    \end{equation*}
+    \item errore vero: differenza in norma infinito tra vettore soluzione esatto e vettore soluzione dell'iterazione;
+    \begin{equation*}
+        || xEsatto - x^{(k+1)} ||
+    \end{equation*}
+    \item rapporto tra le due stampe precedenti.
+    \begin{equation*}
+        \frac{|| xEsatto - x^{(k+1)} ||}{|| x^{(k+1)} -x^{(k)} ||}
+    \end{equation*}
+\end{itemize}
+Al termine di ogni applicazione di ognuno dei metodi vengono stampati il numero di iterazioni svolte, il tempo di esecuzione e l'errore definito come segue:
+\begin{equation*}
+    || xEsatto - xCalcolato ||
+\end{equation*}
+dove \textit{xCalcolato} è il risulato del metodo iterativo.\\ Per osservare il variare dei tempi di esecuzione e del numero di iterazioni si può modificare il valore di \textit{n}, nel \texttt{main} della classe di test. In questo modo si possono ottenere matrici di dimensioni diverse al fine di valutare l'efficienza dell'implementazione dei tre metodi iterativi.
+\subsection{Risultati}
+Procedendo al testing, nelle modalità illustrate nella sezione precedente, su matrici \(n \times n\) si rilevano differenti risultati al crescere di \(n\).
+\begin{table}[h!]
+    \begin{center}
+        \label{tab:allocazione}
+        \begin{tabular}{p{3cm}|p{6cm}}
+            \toprule
+            \textbf{Valore di} \texttt{n} & \textbf{Tempi per l'allocazione in secondi}\\
+            \midrule
+            100 & intorno a 0.004\\
+            1000 & intorno a 0.010 \\
+            10000 & intorno a 0.052 \\
+            100000 & intorno a 0.200 \\
+            1000000 & intorno a 1.000 \\
+            10000000 & intorno a 9.000 \\
+            \bottomrule
+        \end{tabular}
+    \end{center}
+\end{table}
+\begin{table}[h!]
+    \begin{center}
+        \label{tab:metodi}
+        \begin{tabular}{p{2.2cm}|p{2cm}|p{2.5cm}|p{0.5cm}|p{3cm}}
+            \toprule
+            \textbf{Metodo iterativo} & \texttt{n} & \textbf{Errore vero} & \textbf{It.} & \textbf{Tempi in secondi}\\
+            \midrule
+            \multirow{6}{*}{Jacobi} & 100 & 0.45809 & 72 & intorno a 0.01 \\
+            & 1000 & 0.55443 & 95 & intorno a 0.09\\
+            & 10000 & 0.55337 & 91 & intorno a 0.16 \\
+            & 100000 & 0.15076 & 93 & intorno a 0.78 \\
+            & 1000000 & \(4.55788\times10^{-7}\) & 94 & intorno a 9.95\\
+            & 5000000 & \(4.99631\times10^{-7}\) & 94 & intorno a 50.8 \\
+            \midrule
+            \multirow{6}{*}{Gauss-Seidel} & 100 & 0.45809 & 41 & intorno a 0.01 \\
+            & 1000 & 0.55443 & 53 & intorno a 0.04 \\
+            & 10000 & 0.55337 & 51 & intorno a 0.08 \\
+            & 100000 & 0.15076 & 52 & intorno a 0.22 \\
+            & 1000000 & \(2.39751\times10^{-7}\) & 52 & intorno a 4.58 \\
+            & 5000000 & \(1.90405\times10^{-7}\) & 53 & intorno a 26.3 \\
+            \midrule
+            \multirow{6}{*}{SOR} & 100 & 0.45809 & 30 & intorno a 0.008 \\
+            & 1000 & 0.55443 & 33 & intorno a 0.03 \\
+            & 10000 & 0.55337 & 34 & intorno a 0.07 \\
+            & 100000 & 0.15076 & 34 & intorno a 0.16 \\
+            & 1000000 & \(2.94557\times10^{-8}\) & 35 & intorno a 3.03 \\
+            & 5000000 & \(3.44580\times10^{-8}\) & 35 & intorno a 17.5 \\ 
+            \bottomrule
+        \end{tabular}
+    \end{center}
+\end{table}
+\clearpage
+\newpage
+Dai risultati ottenuti possiamo notare una maggiore velocità in termini di numero di iterazioni e di tempo di esecuzione per il metodo di Gauss-Seidel rispetto al metodo di Jacobi e per il metodo SOR rispetto a Gauss-Seidel. In questo modo si trova conferma alle argomentazioni teoriche riportate in precedenza per motivare e descrivere i tre metodi.\\
+Per testare la correttezza dei metodi è stato fatto un confronto dei risultati ottenuti con la semplice implementazione in Matlab della sezione \ref{applicazione} alla pagina \pageref{applicazione}. \\La matrice, che segue, è stata scelta per questo test in modo che fosse abbastanza piccola da confrontare i risultati in modo pratico.
+\begin{equation*}
+   \left[
+    \begin{matrix}
+        2 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 \\
+        5 & 8 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 \\
+        0 & 0 & 3 & 0 & 0 & 0 & 0 & 0 & 0 & 0 \\
+        0 & 6 & 0 & 7 & 0 & 0 & 0 & 0 & 0 & 0 \\ 
+        0 & 0 & 0 & 0 & 4 & 0 & 0 & 0 & 0 & 0 \\
+        0 & 0 & 0 & 0 & 0 & 9 & 0 & 0 & 0 & 0 \\
+        0 & 0 & 0 & 0 & 0 & 0 & 1 & 0 & 0 & 0 \\
+        0 & 0 & 0 & 0 & 0 & 0 & 0 & 3 & 0 & 0 \\
+        0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 2 & 0 \\
+        0 & 0 & 4 & 0 & 0 & 0 & 0 & 0 & 0 & 7 \\
+    \end{matrix}
+    \right]
+\end{equation*}
+Le approssimazioni ottenute testando i metodi nei due linguaggi sono pressoché identiche e non si differenziano utilizzando un metodo iterativo al posto di un altro. Identico è anche il numero di iterazioni impiegato dai due linguaggi di programmazione, ma questo, al contrario, cambia a seconda del metodo utilizzato. 
+\begin{itemize}
+    \item Il metodo di Jacobi impiega 5 iterazioni per terminare.
+    \item Il metodo di Gauss-Seidel impiega 2 iterazioni per terminare.
+    \item Il metodo SOR impiega 67 iterazioni per terminare.
+\end{itemize}
+\newpage
+Nella tabella che segue si possono osservare i valori dei vettori restituiti.
+\begin{table}[h!]
+    \begin{center}
+        \label{tab:jacobi}
+        \begin{tabular}{p{3cm}|p{4cm}|p{5cm}}
+            \toprule
+            \textbf{Metodo iterativo} & \textbf{Implementazione Matlab} & \textbf{Implementazione JAVA} \\
+            \midrule
+            \multirow{10}{*}{Jacobi} & 0.5000 & 0.5\\
+            & -0.1875 & -0.1875\\
+            & 0.3333 & 0.3333333333333333\\
+            & 0.3036 & 0.30357142857142855\\
+            & 0.2500 & 0.25\\
+            & 0.1111 & 0.1111111111111111\\
+            & 1.0000 & 1.0\\
+            & 0.3333 & 0.3333333333333333\\
+            & 0.5000 & 0.5\\
+            & -0.0306 & -0.03061224489795917\\
+            \midrule
+            \multirow{10}{*}{Gauss-Seidel} & 0.5000 & 0.5\\
+            & -0.1875 & -0.1875\\
+            & 0.3333 & 0.3333333333333333\\
+            & 0.3036 & 0.30357142857142855\\
+            & 0.2500 & 0.25\\
+            & 0.1111 & 0.1111111111111111\\
+            & 1.0000 & 1.0\\
+            & 0.3333 & 0.3333333333333333\\
+            & 0.5000 & 0.5\\
+            & -0.0306 & -0.03061224489795917\\
+            \midrule
+            \multirow{10}{*}{SOR} & 0.5000 & 0.5\\
+            & -0.1875 & -0.1875\\
+            & 0.3333 & 0.33333333333333337\\
+            & 0.3036 & 0.3035714285714286\\
+            & 0.2500 & 0.25\\
+            & 0.1111 & 0.1111111111111111\\
+            & 1.0000 & 1.0\\
+            & 0.3333 & 0.33333333333333337\\
+            & 0.5000 & 0.5\\
+            & -0.0306 & -0.030612244897959395\\
+            \bottomrule
+        \end{tabular}
+    \end{center}
+\end{table}
+\newpage
+\section{Codice JAVA}
+\begin{lstlisting}[language=Java]
+package matrix;
+
+public class compactMatrix {
+	private double values[];
+	private int rows[];
+	private int columns[];
+	private int size;
+	private boolean write;
+	
+	public compactMatrix() {
+		size = 0;
+		write = true;
+		values = new double[2];
+		rows = new int[2];
+		columns =  new int[2];
+	}
+	
+	public void set(int i, int j, double value) {
+		if (!write) throw new IllegalArgumentException("Matrice read only!");
+		size++;
+		if (values.length < size) growUp();
+		values[size-1] = value;
+		rows[size-1] = i;
+		columns[size-1] = j;
+	}
+
+	private void growUp() {
+		double[] $values = new double[size*2];
+		int[] $rows = new int[size*2];
+		int[] $columns = new int[size*2];
+		System.arraycopy(values, 0, $values, 0, size-1);
+		System.arraycopy(rows, 0, $rows, 0, size-1);
+		System.arraycopy(columns, 0, $columns, 0, size-1);
+		values = $values;
+		rows = $rows;
+		columns = $columns;
+	}
+
+	public void makeReadOnly() { write = false;	}
+
+	public int getNNZ() { return size;	}
+
+	public void quickSort(int begin, int end) {
+		rowQuickSort(begin, end);
+		int row = rows[0];
+		begin = 0;
+		for (int i=0; i<size; i++) {
+			if (rows[i] != row) {
+				end = i-1;
+				columnQuickSort(begin, end);
+				begin = i;
+				row = rows[i];
+			}
+			if ( i == size-1) {
+				end = i;
+				columnQuickSort(begin, end);
+			}
+		}
+	}
+	
+	public void rowQuickSort(int begin, int end) {
+		if (begin < end) {
+			int partitionIndex = rowPartition(begin, end);
+			rowQuickSort(begin, partitionIndex-1);
+			rowQuickSort(partitionIndex+1, end);
+		}
+	}
+
+	public void columnQuickSort(int begin, int end) {
+		if (begin < end) {
+			int partitionIndex = columnPartition(begin, end);
+			columnQuickSort(begin, partitionIndex-1);
+			columnQuickSort(partitionIndex+1, end);
+		}
+	}
+
+	private int rowPartition(int begin, int end) {
+		int k = (int) (begin + (end - begin - 1) * Math.random());
+		swapElem(k,end);
+		int pivot = rows[end];
+		int i = (begin-1);
+		for (int j = begin; j<end; j++) {
+			if (rows[j] < pivot) {
+				i++;
+				swapElem(i,j);
+			}
+		}
+		swapElem(i+1,end);
+		return i+1;
+	}
+	
+	private int columnPartition(int begin, int end) {
+		int k = (int) (begin + (end - begin - 1) * Math.random());
+		swapElem(k,end);
+		int pivot = columns[end];
+		int i = (begin-1);
+		for (int j = begin; j<end; j++) {
+			if (columns[j] < pivot) {
+				i++;
+				swapElem(i,j);
+			}
+		}
+		swapElem(i+1,end);
+		return i+1;
+	}
+
+	private void swapElem(int i, int j) {
+		int $row = rows[i];
+		int $col = columns[i];
+		double $val = values[i];
+		rows[i] = rows[j];
+		columns[i] = columns[j];
+		values[i] = values[j];
+		rows[j] = $row;
+		columns[j] = $col;
+		values[j] = $val;
+	}
+
+	public double getValue(int i) {	return values[i]; }
+	public int getColumn(int i) { return columns[i]; }
+	public int getRow(int i) { return rows[i];	}
+	
+	public int getSize() {
+		if (rows[size-1] > columns[size-1]) return rows[size-1]+1;
+		else return columns[size-1]+1;
+	}
+}
+\end{lstlisting}
+\newpage
+\begin{lstlisting}[language=Java]
+package matrix;
+import java.util.Arrays;
+
+public class CRSMatrix {
+	private double[] values;
+	private int[] columnIndices;
+	private int[] rowPointers;
+	private int length;
+	
+	public CRSMatrix(int n, int nnz) {
+		if ((nnz/(n*n)) > 0.5) throw new IllegalArgumentException("Matrice non sparsa!");
+		this.values = new double[nnz];
+		this.rowPointers = new int[n+1];
+		this.columnIndices = new int [nnz];
+		this.length = n;
+	}
+
+	public CRSMatrix(compactMatrix M) {
+		this(M.getSize(), M.getNNZ());
+		for (int i = 0; i<M.getNNZ(); i++) {
+			values[i] = M.getValue(i);
+			columnIndices[i] = M.getColumn(i);
+			rowPointers[M.getRow(i)+1] += 1;
+		}
+		for (int i=1; i<=M.getSize(); i++)
+			rowPointers[i] += rowPointers[i-1];
+	}
+
+	public double getElement(int i, int j) {
+		if (i >= length  && j >= length) throw new IndexOutOfBoundsException();
+
+		for (int k = rowPointers[i]; k < rowPointers[i+1]; k++) {
+			if (columnIndices[k] == j)
+				return values[k];
+			if (columnIndices[k] > j)
+				return 0;
+		}
+		return 0;
+	}
+
+	public CRSMatrix copy() {
+		CRSMatrix M = new CRSMatrix(length, values.length);
+		for (int i=0; i<rowPointers[length]; i++)
+			M.values[i] = values[i];
+		for (int i=0; i<length+1; i++)
+			M.rowPointers[i] = rowPointers[i];
+		for (int i=0; i<rowPointers[length]; i++)
+			M.columnIndices[i] = columnIndices[i];
+		return M;
+	}
+	
+	public double getSummation(double[] xOld, int i) {
+		double sum = 0;
+		for (int k=rowPointers[i]; k<rowPointers[i+1]; k++) {
+			if (i != columnIndices[k]) {
+				sum += values[k]*xOld[columnIndices[k]];
+			}
+		}
+		return sum;
+	}
+	
+	public double getSummation(double[] xOld, double[] x, int i) {
+		double sum = 0;
+		for (int k=rowPointers[i]; k<rowPointers[i+1]; k++) {
+			if (columnIndices[k] < i)
+				sum += values[k]*x[columnIndices[k]];
+			if (columnIndices[k] > i)
+				sum += values[k]*xOld[columnIndices[k]];
+		}	
+		return sum;
+	}
+	
+	public double[] times(double[] x) {
+		double[] b = new double[length];
+		Arrays.fill(b, 0);
+		for (int i=0; i<length; i++) {
+			for (int k=rowPointers[i]; k<rowPointers[i+1]; k++) {
+				b[i] += values[k] * x[columnIndices[k]];
+			}
+		}
+		return b;
+	}
+
+	public int getLength() { return length;	}
+	public double [] getValues() { return values; }
+	public int [] getColumns() { return columnIndices; }
+	public int [] getRows() { return rowPointers; }
+	public int getNNZ() { return rowPointers[length]; }
+}
+\end{lstlisting}
+\newpage
+\begin{lstlisting}[language=Java]
+package linear;
+
+public interface LinearSystemSolver {
+	double[] Solver(double[] b, double[] xEsatto);
+	double[] subtract(double[] a, double[] b);
+	public double norm(double[] a);
+		
+}
+\end{lstlisting}
+\begin{lstlisting}[language=Java]
+package linear;
+import matrix.CRSMatrix;
+
+public abstract class AbstractSolver implements LinearSystemSolver {
+	protected CRSMatrix A;
+
+	protected AbstractSolver(CRSMatrix M) {
+		// Faccio la copia della matrice
+		A = M.copy();
+	}
+
+	public double[] subtract(double[] a, double[] b) {
+		double[] tmp = new double[a.length];
+		for (int i=0; i< a.length; i++) 
+			tmp[i] = a[i] - b[i];
+		return tmp;
+	}
+	
+	public double norm(double[] a) {
+		double tmp = Math.abs(a[0]);
+		for (int i=1; i<a.length; i++)
+			if (Math.abs(a[i]) > tmp)
+				tmp = Math.abs(a[i]);
+		return tmp;
+	}
+}
+\end{lstlisting}
+\newpage
+\begin{lstlisting}[language=Java]package linear;
+package linear;
+import java.util.Arrays;
+import matrix.CRSMatrix;
+
+public class JacobiSolver extends AbstractSolver implements LinearSystemSolver {
+	public static final int MAX_ITERATIONS = 200;
+	
+	public JacobiSolver(CRSMatrix A) { super(A); }
+
+	public double[] Solver(double[] b, double[] xEsatto) {
+		int iterations = 0;
+		int n = A.getLength();
+		double epsilon = 10e-8;
+		double err = Double.POSITIVE_INFINITY;
+		double sum, errVero, rapporto;
+		double[] x = new double[n];
+		double[] xOld = new double[n];		
+		for (int i=0; i<n; i++) { x[i]=0; xOld[i]=0; }
+				
+		System.out.println("it err errVero errVero/err");		
+				
+		while (err>epsilon && iterations <= MAX_ITERATIONS) {
+			for (int i=0; i<n; i++) {
+				sum = A.getSummation(xOld, i);
+				x[i] = (b[i]-sum)/A.getElement(i, i);
+			}
+			iterations++;
+			err = norm(subtract(x, xOld));
+			errVero = norm(subtract(xEsatto, x));
+			rapporto = errVero/err;
+			
+			System.out.println(iterations+" "+err+" "+errVero+" "+rapporto);
+			
+			xOld = Arrays.copyOf(x, x.length);
+		}	
+		System.out.println("Numero di iterazioni: "+iterations);
+		return x;	
+	}
+}
+\end{lstlisting}
+\begin{lstlisting}[language=Java]
+package linear;
+import java.util.Arrays;
+import matrix.CRSMatrix;
+
+public class GaussSeidelSolver extends AbstractSolver implements LinearSystemSolver {
+	public static final int MAX_ITERATIONS = 200;
+
+	public GaussSeidelSolver(CRSMatrix A) {				
+		super(A);
+	}
+
+	public double[] Solver(double[] b, double[] xEsatto) {
+		int iterations = 0;
+		int n = A.getLength();
+		double epsilon = 10e-8;
+		double err = Double.POSITIVE_INFINITY;
+		double sum, errVero, rapporto;
+		double[] x = new double[n];
+		double[] xOld = new double[n];
+		for (int i=0; i<n; i++) { x[i]=0; xOld[i]=0; }
+
+		System.out.println("it err errVero errVero/err");
+		
+		while (err>epsilon && iterations <= MAX_ITERATIONS) {
+			for (int i=0; i<n; i++) {
+				sum = A.getSummation(xOld, x, i);
+				x[i] = (b[i]-sum)/A.getElement(i, i);
+			}
+			iterations++;
+			err = norm(subtract(x,xOld));
+			errVero = norm(subtract(xEsatto, x));
+			rapporto = errVero/err;
+
+			System.out.println(iterations+" "+err+" "+errVero+" "+rapporto);
+			
+			xOld = Arrays.copyOf(x, x.length);
+		}
+		System.out.println("Numero di iterazioni: "+iterations);
+		return x;
+	}
+}
+\end{lstlisting}
+\begin{lstlisting}[language=Java]
+package linear;
+import java.util.Arrays;
+import matrix.CRSMatrix;
+
+public class SORSolver extends AbstractSolver implements LinearSystemSolver {
+	public static final int MAX_ITERATIONS = 200;
+	// parametro di rilassamento deve essere compreso tra 0 e 2
+	private double w;
+	
+	public SORSolver(CRSMatrix A, double w) {
+		super(A);
+		this.w = w;
+	}
+		
+	public double[] Solver(double[] b, double[] xEsatto) {
+		int iterations = 0;
+		int n = A.getLength();
+		double epsilon = 10e-8;
+		double err = Double.POSITIVE_INFINITY;
+		double sum, errVero, rapporto;
+		double[] x = new double[n];
+		double[] xOld = new double[n];
+		for (int i=0; i<n; i++) { x[i]=0; xOld[i]=0; }
+		
+		System.out.println("it err errVero errVero/err");
+
+		while (err>epsilon && iterations <= MAX_ITERATIONS) {	
+			for (int i=0; i<n; i++) {
+				sum = A.getSummation(xOld, x, i);
+				x[i] = ((1-w)*xOld[i]) + (w/A.getElement(i, i))*(b[i]-sum);
+			}
+			iterations++;
+			err = norm(subtract(x,xOld));
+			errVero = norm(subtract(xEsatto, x));
+			rapporto = errVero/err;
+
+			System.out.println(iterations+" "+err+" "+errVero+" "+rapporto);
+			
+			xOld = Arrays.copyOf(x, x.length);
+		}
+		System.out.println("Numero di iterazioni: "+iterations);
+		return x;
+	}
+}
+\end{lstlisting}
+\newpage
+\begin{lstlisting}[language=Java]
+package main;
+import java.util.Arrays;
+import java.util.Random;
+import linear.GaussSeidelSolver;
+import linear.JacobiSolver;
+import linear.SORSolver;
+import matrix.CRSMatrix;
+import matrix.compactMatrix;
+
+public class TestFinal {
+	public static void main(String[] args) {
+
+		Random R = new Random(1);
+		double startTime, endTime, timeElapsed;
+		int N = 1000000;
+		startTime = System.nanoTime();
+		compactMatrix I = new compactMatrix();
+		for (int i=0; i<N; i++)
+			I.set(i, i, 1.0);
+		for (int i=1; i<N; i++) {
+			I.set(i-1,i, -0.27);
+			I.set(i,i-1, -0.27);
+			int ii = (int) (N*R.nextDouble());
+			int jj = (int) (N*R.nextDouble());
+			double a = R.nextDouble()*0.59;
+			I.set(ii, jj, -a);
+		}
+		I.makeReadOnly();
+		I.quickSort(0, I.getNNZ()-1);
+		
+		CRSMatrix CCRS = new CRSMatrix(I);
+		endTime = System.nanoTime();
+		timeElapsed = endTime-startTime;
+		System.out.println("Matrice allocata!");
+		System.out.println("Tempo per l'allocazione: "+timeElapsed/1000000000+" secondi");
+		
+		double[] xEsatto = new double[N];
+		Arrays.fill(xEsatto, 1);
+		double[] b = new double[N];
+		b = CCRS.times(xEsatto);	
+
+		//JACOBI
+		System.out.println();
+		JacobiSolver J = new JacobiSolver(CCRS);
+		System.out.println("Metodo di Jacobi: ");
+		startTime = System.nanoTime();
+		double[] x = J.Solver(b, xEsatto);
+		endTime = System.nanoTime();
+		timeElapsed = endTime-startTime;
+		System.out.println("Tempo di esecuzione: "+timeElapsed/1000000000+" secondi");
+		double errore = J.norm(J.subtract(xEsatto, x));
+		System.out.println("Errore: "+errore);
+
+		//GAUSS-SEIDEL
+		System.out.println();
+		GaussSeidelSolver G = new GaussSeidelSolver(CCRS);
+		System.out.println("Metodo di Gauss-Seidel: ");
+		startTime = System.nanoTime();
+		double[] y = G.Solver(b, xEsatto);
+		endTime = System.nanoTime();
+		timeElapsed = endTime-startTime;
+		System.out.println("Tempo di esecuzione: "+timeElapsed/1000000000+" secondi");
+		double errore = G.norm(G.subtract(xEsatto, y));
+		System.out.println("Errore: "+errore);
+
+		//SOR
+		System.out.println();
+		double w = 1.3;
+		SORSolver S = new SORSolver(CCRS, w);
+		System.out.println("Metodo del sovrarilassamento: ");
+		startTime = System.nanoTime();
+		double[] z = S.Solver(b, xEsatto);
+		endTime = System.nanoTime();
+		timeElapsed = endTime-startTime;
+		System.out.println("Tempo di esecuzione: "+timeElapsed/1000000000+" secondi");
+		double errore = S.norm(S.subtract(xEsatto, z));
+		System.out.println("Errore: "+errore);
+	}
+}
+\end{lstlisting}
+\newpage
+Si riporta l'output per del test del metodo di Gauss-Seidel con una matrice \(5000000\times5000000\).
+\begin{verbatim}
+Matrice allocata!
+Tempo per l'allocazione: 4.469456066 secondi
+
+Metodo di Gauss-Seidel: 
+it err errVero errVero/err
+1 2.8099754517849838 3.8099754517849838 1.3558749950519209
+2 1.4564504352229466 3.645356635881391 2.502904697421699
+3 1.0280709569007673 3.2142049389877565 3.1264427006841338
+4 0.7789005587036644 2.5708093743236233 3.3005617284474145
+5 0.678500518338445 1.961569570835806 2.891036215623566
+6 0.5329902437908017 1.464886409237594 2.7484300628447538
+7 0.3997274248745626 1.069003238527321 2.6743304862376704
+8 0.29871090581048354 0.7702923327168374 2.578721826800484
+9 0.21900770971020656 0.5512846230066308 2.5171927679445476
+10 0.158087872598619 0.3959870797770566 2.5048542514229255
+11 0.11322388571949427 0.28462898498896094 2.5138598907841145
+12 0.08077212694593117 0.20396622481711613 2.525205569411971
+13 0.058110926799979534 0.1458552980171366 2.5099461675973127
+14 0.04170121307884278 0.10415408493829381 2.49762722109244
+15 0.029845462471846496 0.07430862246644732 2.4897795615177127
+16 0.0213226132042319 0.05298600926221542 2.484967895571978
+17 0.015216565995416431 0.037769443266798985 2.4821266032149425
+18 0.010851645983326552 0.026917797283472433 2.4805266707770754
+19 0.007735698119166301 0.019182099164306132 2.4796855912435016
+20 0.005513223034972814 0.013668876129333318 2.479289526766029
+21 0.003928804233782834 0.009740071895550484 2.4791441150968963
+22 0.0027995688678461583 0.006940503027704326 2.479132807704061
+23 0.0019948644448315456 0.00494563858287278 2.479185287845666
+24 0.0014214630061966105 0.0035241755766761695 2.479259439966545
+25 0.001012888537499812 0.0025112870391763575 2.4793320747563734
+26 7.217601373117333E-4 0.0017895269018646243 2.479392819517428
+27 5.143147541635251E-4 0.0012752121477010991 2.479439171009371
+28 3.664958074720559E-4 9.087163402290432E-4 2.4794726752729086
+29 2.611631826923144E-4 6.475531575367288E-4 2.479496347307247
+30 1.8610452717116033E-4 4.614486303655685E-4 2.47951319282617
+31 1.3261826157418E-4 3.288303687913885E-4 2.479525556195421
+32 9.450411305467199E-5 2.343262557367165E-4 2.4795349976053993
+33 6.734398558450039E-5 1.6698227015221612E-4 2.4795424372781416
+34 4.7989638897405484E-5 1.1899263125481063E-4 2.479548377290329
+35 3.4197676544334144E-5 8.479495471047649E-5 2.4795530948000994
+36 2.4369470106311297E-5 6.042548460416519E-5 2.4795567708514095
+37 1.73658428956891E-5 4.305964170847609E-5 2.4795595564880544
+38 1.237501924045148E-5 3.0684622468024614E-5 2.4795615967789915
+39 8.81852754552881E-6 2.1866094922495805E-5 2.479563034713477
+40 6.284147926027828E-6 1.5581946996467977E-5 2.479564004521649
+41 4.478131227170223E-6 1.1103815769297753E-5 2.4795646232802264
+42 3.1911505593562595E-6 7.912665209941494E-6 2.4795649916115807
+43 2.274038501060005E-6 5.638626708881489E-6 2.4795651904104252
+44 1.6204974642164416E-6 4.018129244665047E-6 2.479565277572299
+45 1.1547790887966869E-6 2.8633501558683605E-6 2.479565298374128
+46 8.229045649343902E-7 2.0404455909339703E-6 2.4795652836081348
+47 5.864081980000435E-7 1.4540373929339268E-6 2.4795652548735667
+48 4.178790455888759E-7 1.0361583473450509E-6 2.479565219368429
+49 2.977838584605763E-7 7.383744888844745E-7 2.479565187655153
+50 2.1220309287528494E-7 5.261713960091896E-7 2.4795651603364175
+51 1.512175731299692E-7 3.749538228792204E-7 2.4795651399388174
+52 1.0775881786884156E-7 2.6719500501037885E-7 2.4795651093314213
+53 7.678976920999503E-8 1.9040523580038382E-7 2.479565152483887
+Numero di iterazioni: 53
+Tempo di esecuzione: 27.883443372 secondi
+Errore: 1.9040523580038382E-7
+\end{verbatim}
+\clearpage
+\nocite{*}
+\printbibliography[heading=bibintoc,type=book,title={Bibliografia}]
+\printbibliography[heading=bibintoc,type=online,title={Sitografia}]
 \end{document}
