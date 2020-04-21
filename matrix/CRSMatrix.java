@@ -1,15 +1,16 @@
 package matrix;
 
+import java.util.Arrays;
+
 /**
- * Il programma CRSMatrix implementa la rappresentazione CRS per matrici sparse.
+ * La classe CRSMatrix implementa la rappresentazione CRS per matrici sparse.
  * 
  * @author marcotelle
- * @version 1.0
- * @since 2019-09-20
+ * @since 2020-02-27
  */
 public class CRSMatrix {
 	
-	// dimensione NNZ (=elementi diversi da 0), contiene i vaori diversi da 0 della matrice
+	// dimensione NNZ (=elementi diversi da 0), contiene i valori diversi da 0 della matrice
 	private double[] values;
 	// dimensione NNZ, contiene l'indice della colonna di ogni elementi di values
 	private int[] columnIndices;
@@ -19,8 +20,6 @@ public class CRSMatrix {
 	private int[] rowPointers;
 	// lunghezza della matrice = numero di righe = numero di colonne
 	private int length;
-	
-	private int nnz;
 		
 	
 	/**
@@ -30,13 +29,13 @@ public class CRSMatrix {
 	 * @throws IllegalArgumentException Se il numero di elementi diversi da zero diviso il numero totale è maggiore di 0,5.
 	 */
 	public CRSMatrix(int n, int nnz) {
-		//if ((nnz/(n+n)) > 0.5) throw new IllegalArgumentException("La matrice non è sparsa!");
+		if ((nnz/(n*n)) > 0.5) throw new IllegalArgumentException("La matrice non è sparsa!");
 			
 		this.values = new double[nnz];
 		this.rowPointers = new int[n+1];
 		this.columnIndices = new int [nnz];
 		this.length = n;
-		this.nnz = nnz;
+		//this.nnz = nnz;
 	}
 	
 	
@@ -65,13 +64,18 @@ public class CRSMatrix {
 				}
 	}
 	
-	// TODO Matrice CRS da Matrice compact
+	
+	/**
+	 * Metodo costruttore usato per allocare una matrice CRS da una in formato compactMatrix
+	 * fornita in input.
+	 * @param M La matrice in formato compactMatrix.
+	 */
 	public CRSMatrix(compactMatrix M) {
 		this(M.getSize(), M.getNNZ());
 		
 		for (int i = 0; i<M.getNNZ(); i++) {
 			values[i] = M.getValue(i);
-			columnIndices[i] = M.getColumnIndex(i);
+			columnIndices[i] = M.getColumn(i);
 			rowPointers[M.getRow(i)+1] += 1;
 		}
 		for (int i=1; i<=M.getSize(); i++)
@@ -127,24 +131,7 @@ public class CRSMatrix {
 		}
 		return 0;
 	}
-	
-	
-	public void set(int i, int j, double value) {
-		if (i >= length  && j >= length) throw new IndexOutOfBoundsException();
 		
-		int z = searchForColumnIndex(j, rowPointers[i], rowPointers[i+1]);
-		
-		if (z < rowPointers[i+1] && columnIndices[z] == j) {
-			if (value == 0.0) {
-				remove(z, i);
-			} else {
-				values[z] = value;
-			}
-		} else {
-			insert(z, i , j, value);
-		}
-	}
-	
 	
 	/**
 	 * Metodo che fa la copia della matrice.
@@ -152,105 +139,77 @@ public class CRSMatrix {
 	 */
 	public CRSMatrix copy() {
 		CRSMatrix M = new CRSMatrix(length, values.length);
-		for (int i=0; i<nnz; i++)
+		for (int i=0; i<rowPointers[length]; i++)
 			M.values[i] = values[i];
 		for (int i=0; i<length+1; i++)
 			M.rowPointers[i] = rowPointers[i];
-		for (int i=0; i<nnz; i++)
+		for (int i=0; i<rowPointers[length]; i++)
 			M.columnIndices[i] = columnIndices[i];
 		return M;
 	}
 	
-	/**
-	 * Metodo che restituisce la dimensione della matrice.
-	 * @return La dimensione della matrice.
-	 */
-	public int getLength() {
-		return length;
-	}
 	
-	
-	private int searchForColumnIndex(int j, int left, int right) {
-		if (right - left == 0 || j > columnIndices[right-1]) {
-			return right;
-		}
-		
-		while (left < right) {
-			int p = (left + right) / 2;
-			if (columnIndices[p] > j) {
-				right = p;
-			} else if (columnIndices[p] < j) {
-				left = p + 1;
-			} else {
-				return p;
+	public double getSummation(double[] xOld, int i) {
+		double sum = 0;
+		for (int k=rowPointers[i]; k<rowPointers[i+1]; k++) {
+			if (i != columnIndices[k]) {
+				sum += values[k]*xOld[columnIndices[k]];
 			}
 		}
-		return left;
+		return sum;
 	}
 	
+	public double getSummation(double[] xOld, double[] x, int i) {
+		double sum = 0;
+		for (int k=rowPointers[i]; k<rowPointers[i+1]; k++) {
+			if (columnIndices[k] < i)
+				sum += values[k]*x[columnIndices[k]];
+			if (columnIndices[k] > i)
+				sum += values[k]*xOld[columnIndices[k]];
+		}	
+		return sum;
+	}
 	
-	private void remove(int k, int i) {
-		nnz--;
-		if (nnz - k > 0) {
-			System.arraycopy(values, k+1, values, k, nnz);
-			System.arraycopy(columnIndices, k+1, columnIndices, k, nnz);
+	public double[] times(double[] x) {
+		double[] b = new double[length];
+		Arrays.fill(b, 0);
+		for (int i=0; i<length; i++) {
+			for (int k=rowPointers[i]; k<rowPointers[i+1]; k++) {
+				b[i] += values[k] * x[columnIndices[k]];
+			}
 		}
-		for (int ii = i + 1; ii < length+1; ii++)
-			rowPointers[ii]--;
+		return b;
 	}
 	
 	
-	private void insert(int k, int i, int j, double value) {
-		if (value == 0.0) 
-			return;
-		
-		if (values.length < nnz+1)
-			growUp();
-		
-		if (nnz - k > 0) {
-			System.arraycopy(values, k, values, k+1, nnz - k);
-			System.arraycopy(columnIndices, k, columnIndices, k+1, nnz - k);
-		}
-		
-		values[k] = value;
-		columnIndices[k] = j;
-		
-		for (int ii = i+1; ii < length+1; ii++) {
-			rowPointers[ii]++;
-		}
-		
-		nnz++;
-	}
-		
+	/**
+	 * Metodo getter che restituisce la dimensione della matrice.
+	 * @return La dimensione della matrice.
+	 */
+	public int getLength() { return length;	}
 	
-	private void growUp() {
-		int tmp = (nnz*3)/2;
+	/**
+	 * Metodo getter che restituisce l'array dei valori degli elementi diversi da zero.
+	 * @return L'array di valori.
+	 */
+	public double [] getValues() { return values; }
+	
+	/**
+	 * Metodo getter che restituisce l'array degli indici di colonna degli elementi diversi da zero.
+	 * @return L'array di indici.
+	 */
+	public int [] getColumns() { return columnIndices; }
+	
+	/**
+	 * Metodo getter che restituisce l'array contenente i puntatori alle righe.
+	 * @return L'array contenente i puntatori.
+	 */
+	public int [] getRows() { return rowPointers; }
+	
+	/**
+	 * Metodo getter che restituisce il numero di elementi diversi da zero contenuti nella matrice.
+	 * @return Il numero di elementi diversi da zero.
+	 */
+	public int getNNZ() { return rowPointers[length]; }
 		
-		double[] $values = new double[tmp];
-		int[] $columnIndices = new int[tmp];
-		
-		System.arraycopy(values, 0, $values, 0, nnz);
-		System.arraycopy(columnIndices, 0, $columnIndices, 0, nnz);
-		
-		values = $values;
-		columnIndices = $columnIndices;
-	}
-	
-	public double [] getValues() {
-		return values;
-	}
-	
-	public int [] getColumns() {
-		return columnIndices;
-	}
-	
-	public int [] getRows() {
-		return rowPointers;
-	}
-	
-	public int getNNZ() {
-		return nnz;
-	}
-	
-	
 }
