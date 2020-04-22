@@ -1,4 +1,4 @@
-package linear;
+ackage linear;
 
 import matrix.CRSMatrix;
 
@@ -6,8 +6,7 @@ import matrix.CRSMatrix;
  * La classe astratta AbstractSolver implementa i metodi di un risolutore di sistemi lineari
  * 
  * @author marcotelle
- * @version 1.0
- * @since 2019-09-20
+ * @since 2020-02-27
  */
 public abstract class AbstractSolver implements LinearSystemSolver {
 
