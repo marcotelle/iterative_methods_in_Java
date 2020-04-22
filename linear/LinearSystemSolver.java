@@ -4,8 +4,7 @@ package linear;
  * Interfaccia contenente i metodi di un risolutore di sistemi lineari.
  * 
  * @author marcotelle
- * @version 1.0
- * @since 2019-09-20
+ * @since 2020-02-27
  */
 public interface LinearSystemSolver {
 
@@ -15,7 +14,7 @@ public interface LinearSystemSolver {
 	 * @param b Array dei termini noti.
 	 * @return Restituisce l'array contenente la soluzione del sistema.
 	 */
-	double[] Solver(double[] b);
+	double[] Solver(double[] b, double[] xEsatto);
 	
 
 	/**
