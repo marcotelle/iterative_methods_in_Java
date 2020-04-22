@@ -9,12 +9,11 @@ import matrix.CRSMatrix;
  * Per maggiori informazioni sul <a href="http://mathworld.wolfram.com/JacobiMethod.html">metodo. </a>
  * 
  * @author marcotelle
- * @version 1.0
- * @since 2019-09-20
+ * @since 2020-02-27
  */
 public class JacobiSolver extends AbstractSolver implements LinearSystemSolver {
 
-	public static final int MAX_ITERATIONS = 100;
+	public static final int MAX_ITERATIONS = 200;
 	
 	/**
 	 * Metodo costruttore che utilizza quello della superclasse astratta AbstractSolver.
@@ -30,37 +29,53 @@ public class JacobiSolver extends AbstractSolver implements LinearSystemSolver {
 	 * @param b Array dei termini noti.
 	 * @return Restituisce l'array contenente la soluzione del sistema.
 	 */
-	public double[] Solver(double[] b) {
-		// Se la matrice non è predominante diagonale non è assicurata la convergenza
-		if (!DiagonallyDominant())
-			System.err.println("La soluzione potrebbe non convergere!");
-		
+	public double[] Solver(double[] b, double[] xEsatto) {
+
 		int iterations = 0;
 		int n = A.getLength();
-		double epsilon = 1e-15;
+		double epsilon = 10e-8;
 		double err = Double.POSITIVE_INFINITY;
-		double sum;
+		double sum, errVero, terza;
+		//double elem;
 		double[] x = new double[n];
-		double[] xOld = new double[n];
-		Arrays.fill(x, 0);
-		Arrays.fill(xOld, 0);				
+		double[] xOld = new double[n];		
+		for (int i=0; i<n; i++) {
+			x[i]=0;
+			xOld[i]=0;
+		}
+				
+		System.out.println("it err errVero errVero/err");
 		
 		while (err>epsilon && iterations <= MAX_ITERATIONS) {
+			
 			for (int i=0; i<n; i++) {
+				/*
 				sum = 0;
 				for (int j=0; j<n; j++) {
-					if (i!=j)
-						sum += A.getElement(i, j)*xOld[j];
+					if (i!=j) {
+						elem = A.getElement(i, j);
+						if ((elem) != 0)
+							sum += elem*xOld[j];
+					}
 				}
+				*/
+				sum = A.getSummation(xOld, i);
 				x[i] = (b[i]-sum)/A.getElement(i, i);
 			}
 			iterations++;
 			err = norm(subtract(x, xOld));
 			
-			/*
-			for (int i=0; i<n; i++)
-				xOld[i] = x[i];
-			*/
+			//System.out.println("Iterazione: "+iterations);
+			//System.out.println("Differenza x^(k+1) - x^k in norma infinito: "+ err);
+			errVero = norm(subtract(xEsatto, x));
+			//System.out.println("Errore: "+errVero);
+			terza = errVero/err;
+			//System.out.println("errVero/err: "+terza);
+			//System.out.println("Tol: "+epsilon);
+			//System.out.println();			
+			
+			System.out.println(iterations+" "+err+" "+errVero+" "+terza);
+			
 			xOld = Arrays.copyOf(x, x.length);
 		}	
 		System.out.println("Numero di iterazioni: "+iterations);
